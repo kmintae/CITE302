@@ -1,3 +1,9 @@
+/**
+ * RoboWheels.cpp
+ * Purpose: Direction Control with 4 'Enc-DC Motor's.
+ * @author Mintae Kim
+ */
+
 #include "RoboWheels.h"
 
 RobotWheels::RobotWheels()
@@ -11,8 +17,7 @@ RobotWheels::RobotWheels()
     this->motorL->encMotor = new EncoderMotor();
     this->motorR->encMotor = new EncoderMotor();
 
-    this->threadL_id = pthread_create(&threadL, NULL, update, (void *)(this->motorL));
-    this->threadR_id = pthread_create(&threadR, NULL, update, (void *)(this->motorR));
+    update();
 }
 
 RobotWheels::~RobotWheels()
@@ -63,8 +68,8 @@ void RobotWheels::hiatus()
 
 void RobotWheels::update()
 {
-    this->threadL_id = pthread_create(&threadL, NULL, commit, (void *)(this->motorL));
-    this->threadR_id = pthread_create(&threadR, NULL, commit, (void *)(this->motorR));
+    this->threadL_id = pthread_create(&threadL, NULL, this->commit, (void *)(this->motorL));
+    this->threadR_id = pthread_create(&threadR, NULL, this->commit, (void *)(this->motorR));
 }
 void *RobotWheels::commit(void *ptr)
 {

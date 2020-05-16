@@ -4,8 +4,8 @@
  * @author Mintae Kim
  */
 
-#ifndef ROBOWHEELS_H_
-#define ROBOWHEELS_H_
+#ifndef CLIENT_STRUCT_ROBOWHEELS_H_
+#define CLIENT_STRUCT_ROBOWHEELS_H_
 
 #include <pthread.h>
 #include <Windows.h>
@@ -27,8 +27,6 @@ private:
     int threadL_id, threadR_id;
 
     void update();
-    void *commit(void *ptr);
-
 public:
     RobotWheels();
     ~RobotWheels();
@@ -38,6 +36,9 @@ public:
     void rotRight(float angVel);
     void rotLeft(float angVel);
     void hiatus(); // For Real-time Instruction Fetching
+
+    void *commit(void *ptr);
+
 };
 
-#endif // ROBOWHEELS_H_
+#endif // CLIENT_STRUCT_ROBOWHEELS_H_

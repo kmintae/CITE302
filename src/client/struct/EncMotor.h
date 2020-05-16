@@ -4,8 +4,8 @@
  * @author Mintae Kim
  */
 
-#ifndef ENCMOTOR_H_
-#define ENCMOTOR_H_
+#ifndef CLIENT_STRUCT_ENCMOTOR_H_
+#define CLIENT_STRUCT_ENCMOTOR_H_
 
 #include <Windows.h>
 // Reference: http://blog.naver.com/PostView.nhn?blogId=nkkh159&logNo=220772495083
@@ -14,15 +14,15 @@
 class EncoderMotor
 {
 private:
-    bool rotCW;
+    bool isRotatingCW;
     bool isBreak;
-    short dirPin, stpPin;
+    short pwmPin, dirPin, stopPin, encPin1, encPin2;
     
 public:
-    EncoderMotor (short dirPin, short stpPin);
+    EncoderMotor (short pwmPin, short dirPin, short stopPin, short encPin1, short encPin2);
     ~EncoderMotor();
 
-    void rotate(float vel);
+    void setVelocity(bool isRotatingCW, float vel);
 };
 
-#endif // ENCMOTOR_H_
+#endif // CLIENT_STRUCT_ENCMOTOR_H_
