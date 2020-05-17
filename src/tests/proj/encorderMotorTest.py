@@ -9,16 +9,16 @@ pinL=[19,13,6,5,0]#left motor
 #DIR=False #false for right
 
 
-ratio = 360./2300
+ratio = 360./1326
 Kp = 0.2
-Kd = 0.01
-Ki = 0.5
+Kd = 0.015
+Ki = 0.2
 dt = 0.
-dt_sleep = 0.01
+dt_sleep = 0.001
 tolerance = 2.
 encoderPosR = 0
 encoderPosL = 0
-
+time.sleep(7)
 def encoderRightA(channel):
     global encoderPosR
     if IO.input(pinR[3]) == IO.input(pinR[4]):
@@ -30,9 +30,9 @@ def encoderRightA(channel):
 def encoderRightB(channel):
     global encoderPosR
     if IO.input(pinR[3]) == IO.input(pinR[4]):
-        encoderPosR -= 1
+        encoderPosR -= 0
     else:
-        encoderPosR += 1
+        encoderPosR += 0
 
 def encoderLeftA(channel):
     global encoderPosL
@@ -44,9 +44,9 @@ def encoderLeftA(channel):
 def encoderLeftB(channel):
     global encoderPosL
     if IO.input(pinL[3]) == IO.input(pinL[4]):
-        encoderPosL -= 1
+        encoderPosL -= 0
     else:
-        encoderPosL += 1
+        encoderPosL += 0
 
 IO.setmode(IO.BCM)
 IO.setwarnings(False)
@@ -61,7 +61,6 @@ IO.add_event_detect(pinR[4], IO.BOTH, callback=encoderRightB)
 IO.add_event_detect(pinL[3], IO.BOTH, callback=encoderLeftA)
 IO.add_event_detect(pinL[4], IO.BOTH, callback=encoderLeftB)
 
-time.sleep(7)
 
 def Motor(DIR=True):
     pins=[]
@@ -85,7 +84,7 @@ def Motor(DIR=True):
     start_time = time.time()
     while True:
         n=n+1
-        target=  720.+target
+        target=  480.+target
         if(DIR):
             targetDeg=target
         else:
@@ -125,6 +124,7 @@ def Motor(DIR=True):
         if(n>0):
             break
     IO.output(pins[2] , False)
+    print('time = %6.3f, enc = %d, deg = %5.1f, err = %5.1f, ctrl = %7.1f' %(time.time()-start_time, encoderPosL, motorDeg, error, control))
     
 t1=threading.Thread(target=Motor,args=(True,))
 t2=threading.Thread(target=Motor,args=(False,))
