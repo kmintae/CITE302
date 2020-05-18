@@ -29,6 +29,24 @@ GPIO.output(StepPins[0], True)
 for i in range(1,200):
     print(i)
     GPIO.output(StepPins[2], True)
-    time.sleep(0.0008)
+    time.sleep(0.0017)
     GPIO.output(StepPins[2], False)
 GPIO.output(StepPins[0], False)
+
+StepPins = [2,17,27]
+for pin in StepPins:
+  GPIO.setup(pin,GPIO.OUT)
+GPIO.output(StepPins[1], True)
+
+# Define advanced sequence
+# as shown in manufacturers datasheet
+GPIO.output(StepPins[0], True)
+# Initialise variables
+for i in range(1,300):
+    print(i)
+    GPIO.output(StepPins[2], True)
+    time.sleep(0.0017)
+    GPIO.output(StepPins[2], False)
+GPIO.output(StepPins[0], False)
+
+

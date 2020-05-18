@@ -8,17 +8,19 @@ pinL=[19,13,6,5,0]#left motor
 #DIR=True #true for right
 #DIR=False #false for right
 
-
+time.sleep(80)
 ratio = 360./1326
-Kp = 0.2
+Kp = 0.3
 Kd = 0.015
-Ki = 0.2
+Ki = 1.0
 dt = 0.
 dt_sleep = 0.001
-tolerance = 2.
+tolerance = 8.
 encoderPosR = 0
 encoderPosL = 0
-time.sleep(7)
+demoR=[720,-270,720,-270]
+demoL=[720,270,720,270]
+
 def encoderRightA(channel):
     global encoderPosR
     if IO.input(pinR[3]) == IO.input(pinR[4]):
@@ -62,38 +64,52 @@ IO.add_event_detect(pinL[3], IO.BOTH, callback=encoderLeftA)
 IO.add_event_detect(pinL[4], IO.BOTH, callback=encoderLeftB)
 
 
-def Motor(DIR=True):
+for i in range(0,3):
+    IO.setup(pinR[i],IO.OUT)
+    IO.setup(pinL[i],IO.OUT)
+
+IO.output( pinR[2], True)
+p1 = IO.PWM(pinR[1],1000)
+p1.start(100)
+
+IO.output( pinL[2], True)
+p2 = IO.PWM(pinL[1],1000)
+p2.start(100)
+
+
+def Motor(motor=True,DIR=True,index=0):
     pins=[]
-    if(DIR):
+    if(motor):
         pins=pinR
+        p=p1
     else:
         pins=pinL
+        p=p2
     print(pins)
-
-    for i in range(0,3):
-        IO.setup(pins[i],IO.OUT)
-
-
-    IO.output( pins[2], True)
-    p = IO.PWM(pins[1],1000)
-    p.start(100)
 
     #​여기서부터는 PID가 들어간 핵심코드입니다.
     n=0
-    target=  0.0
+
     start_time = time.time()
     while True:
-        n=n+1
-        target=  480.+target
-        if(DIR):
-            targetDeg=target
+        temp=0
+        if(motor):
+            for i in range(index+1):
+                temp=temp+demoR[i]
         else:
-            targetDeg=-target
+            for i in range(index+1):
+                temp=temp+demoL[i]
+        n=n+1
+        target=0.0
+        if(motor==DIR):
+            targetDeg=temp
+        else:
+            targetDeg=-temp
         error_prev = 0.
         time_prev = 0.
 
         while True:
-            if(DIR):
+            if(motor):
                 motorDeg = encoderPosR * ratio
             else:
                 motorDeg = encoderPosL * ratio
@@ -120,16 +136,55 @@ def Motor(DIR=True):
                 break
            
             time.sleep(dt_sleep)
-        time.sleep(1)
         if(n>0):
             break
-    IO.output(pins[2] , False)
     print('time = %6.3f, enc = %d, deg = %5.1f, err = %5.1f, ctrl = %7.1f' %(time.time()-start_time, encoderPosL, motorDeg, error, control))
-    
-t1=threading.Thread(target=Motor,args=(True,))
-t2=threading.Thread(target=Motor,args=(False,))
+for i in range (4):
+    print(i)
+    t1=threading.Thread(target=Motor,args=(True,True,i,))
+    t2=threading.Thread(target=Motor,args=(False,True,i,))
 
-t1.start()
-t2.start()
+    t1.start()
+    t2.start()
+    time.sleep(3)
+
+
+StepPins = [2,3,4]#motor right
+#StepPins = [2,17,27]#motor left
+
+
+# Set all pins as output
+for pin in StepPins:
+  IO.setup(pin,IO.OUT)
+
+IO.output(StepPins[1], False)
+
+# Define advanced sequence
+# as shown in manufacturers datasheet
+IO.output(StepPins[0], True)
+# Initialise variables
+for i in range(1,200):
+    print(i)
+    IO.output(StepPins[2], True)
+    time.sleep(0.0017)
+    IO.output(StepPins[2], False)
+IO.output(StepPins[0], False)
+
+StepPins = [2,17,27]
+for pin in StepPins:
+  IO.setup(pin,IO.OUT)
+IO.output(StepPins[1], False)
+
+# Define advanced sequence
+# as shown in manufacturers datasheet
+IO.output(StepPins[0], True)
+# Initialise variables
+for i in range(1,300):
+    print(i)
+    IO.output(StepPins[2], True)
+    time.sleep(0.0017)
+    IO.output(StepPins[2], False)
+IO.output(StepPins[0], False)
+
 
 
