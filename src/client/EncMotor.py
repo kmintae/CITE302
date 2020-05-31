@@ -26,6 +26,8 @@ class EncMotor:
         for i in range (0,3):
             gpio.setup(self.pins[i], gpio.OUT) # setting gpio, dirPin, pwmPin, stpPin as output
 
+        gpio.output(self.pins[1], True)
+        gpio.output(self.pins[2], True)
         self.pwm=gpio.PWM(pins[1],1000)
         self.pwm=pwm.start(0)
 
@@ -54,6 +56,11 @@ class EncMotor:
         pwmWriteValue=min(abs(control), 100)
         pwm.ChangeDutyCycle(pwmWriteValue)
         return True
+
+    def halt(self):
+        pwm.ChangeDutyCycle(0)
+        gpio.output(self.pins[2], False)
+
 
     def __del__(self):
         # gpio.cleanup()

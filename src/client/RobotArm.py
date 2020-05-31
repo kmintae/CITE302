@@ -19,9 +19,9 @@ class armClient:
         self.ratio = 5.0  # ratio of rotation,  second motor rotates robot arm indirect wat
         gpio.setmode(gpio.BCM)
 
-        # gpio.setup(servoPin, gpio.OUT)
-        # self.servoPwm = gpio.PWM(servoPin, 50)
-        # self.servoPwm.start(0)
+        gpio.setup(servoPin, gpio.OUT)
+        self.servoPwm = gpio.PWM(servoPin, 50)
+        self.servoPwm.start(0)
 
         for i in range(0, 2):
             motor = Motor(config["MOTOR_ARM_ANG_PER_SEC"], config["MOTOR_ARM_GEAR"], 0.0, 0.0)
@@ -33,7 +33,6 @@ class armClient:
         self.motorList[0].gear = 50
 
         self.motorList[1].curAng = self.curAngles[1] + self.curAngles[0]
-
 
     def move(self,target):
         cur = [self.curAngles[0], self.curAngles[1]]
@@ -103,6 +102,9 @@ class armClient:
         self.curAngles = [m[0].curAng, m[1].curAng - m[0].curAng]
 
     def work(self, target_pos, grap):
+        self.motorList[0].unhalt()
+        self.motorList[1].unhalt()
+
         cur = [self.curAngles[0], self.curAngles[1]]
 
         #move before work: move to upside of brick, this movement ensures stabillity
@@ -133,6 +135,10 @@ class armClient:
         arg=calAngle(movingPos)
         self.move(arg)
 
+    def halt(self):
+        self.motorList[0].halt()
+        self.motorList[1].halt()
+
 l1 = config["ROBOTARM_L1"]
 l2 = config["ROBOTARM_L2"]
 
@@ -152,7 +158,8 @@ def calAngle(x, y):
 
 #test _ drawing square
 '''
-test = armClient([21, 24, 15], [20, 23, 14], [0.0, 0.0, 0.0], [360.0, 360.0, 360.0], 10)
+test = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"], config["ROBOTARM_MIN_ANGLES"],
+                         config["ROBOTARM_MAX_ANGLES"], config["GPIO_SERVO_PIN"])
 ang = calAngle(100.0, -71.0)
 print(ang)
 print(calPos(ang[0], ang[1]))

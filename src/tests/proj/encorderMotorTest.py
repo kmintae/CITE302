@@ -26,14 +26,6 @@ def encoderRightA(channel):
     else:
         encoderPosR -= 1
 
-
-def encoderRightB(channel):
-    global encoderPosR
-    if IO.input(pinR[3]) == IO.input(pinR[4]):
-        encoderPosR -= 0
-    else:
-        encoderPosR += 0
-
 def encoderLeftA(channel):
     global encoderPosL
     if IO.input(pinL[3]) == IO.input(pinL[4]):
@@ -41,12 +33,6 @@ def encoderLeftA(channel):
     else:
         encoderPosL -= 1   
 
-def encoderLeftB(channel):
-    global encoderPosL
-    if IO.input(pinL[3]) == IO.input(pinL[4]):
-        encoderPosL -= 0
-    else:
-        encoderPosL += 0
 
 IO.setmode(IO.BCM)
 IO.setwarnings(False)

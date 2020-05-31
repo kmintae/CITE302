@@ -18,13 +18,18 @@ class Motor:
         self.minAng = minAng
         self.dirPin = 0
         self.stpPin = 0
+        self.enPin=0
 
-    def set(self, dirPin, stpPin):
+    def set(self, dirPin, stpPin,enPin):
         gpio.setmode(gpio.BCM)
         gpio.setup(dirPin, gpio.OUT)  # setting gpio, dirPin controls direction of motor
         gpio.setup(stpPin, gpio.OUT)  # stpPin controls step number of motor, you must set connect pin on rasberry Pi 3B
+        gpio.setup(enPin, gpio.OUT)
+        self.enPin=enPin
+
         gpio.output(dirPin, True)
         gpio.output(stpPin, False)
+        gpio.output(enPin, True)
 
         # Updating dir/stp Pins
         self.dirPin = dirPin
@@ -44,7 +49,6 @@ class Motor:
         return 20 * maxVel / (19 + abs(math.sqrt(cur / target)))
 
     def move(self, angle, vel, smooth):
-
         if (angle + self.curAng < self.minAng or angle + self.curAng < self.maxAng) and self.maxAng != 0:
             print("False")
             return False
@@ -82,6 +86,12 @@ class Motor:
                 counter += 1
         gpio.output(self.stpPin, False)
         return True
+
+    def halt(self):
+        gpio.output(self.enPin,False)
+
+    def unhalt(self):
+        gpio.output(self.enPin, True)
 
     def __del__(self):
         print()

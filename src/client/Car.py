@@ -33,13 +33,16 @@ class Car:
         self.errorAnglePrev=0.0
         self.errorPosPrev = 0.0
         self.timePrev=0.0
+        self.target=[0.0,0.0,0.0]
 
-    def setTarget (self, target,current):
+    def setTarget (self,current,target):
         self.errorDistPrev=calDist([target[0]-current[0],target[1]-current[1]])
         self.errorAnglePrev=calRotationDegree([current[2],current[3],0],[target[2],target[3],0])
+        self.target=target
         self.timePrev=time.time()
 
-    def move(self, target, current, delay):
+    def move(self, current):
+        target=self.target
         errorDist = calDist([target[0] - current[0], target[1] - current[1]])
         errorAngle = calRotationDegree([current[2], current[3], 0], [target[2], target[3], 0])
         de_dist=errorDist-self.errorDistPrev
@@ -67,6 +70,11 @@ class Car:
         self.errorAnglePrev=0.0
         self.errorPosPrev = 0.0
         self.timePrev=0.0
+
+    def halt(self):
+        self.initialize()
+        self.rightMotor.halt()
+        self.leftMotor.halt()
 
 def calDist(pos):
     return (pos[0]**2+pos[1]**2)**0.5
