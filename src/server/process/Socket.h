@@ -8,13 +8,12 @@
 
 #pragma once
 
-#define MAX_BUFF_SIZE 1024
-
 #include <stdio.h> 
 #include <string>
 #include <Winsock2.h>
 #include <Windows.h>
 
+#include "../struct/program/ProgramState.h"
 #pragma comment(lib,"ws2_32")
 
-void serverSocket();
+void serverSocket(ProgramState *programState);

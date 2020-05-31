@@ -8,7 +8,7 @@
 
 #include "Socket.h"
 
-void serverSocket()
+void serverSocket(ProgramState* programState)
 {
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -39,15 +39,11 @@ void serverSocket()
 
 	listen(hListen, maxRobotLimit);
 
-	SOCKADDR_IN tClntAddr = {};
-	int iClntSize = sizeof(tClntAddr);
-	SOCKET hClient = accept(hListen, (SOCKADDR*)&tClntAddr, &iClntSize);
-
 	// Using As Blocking Mode: Multi-Threading
 
 	while (true)
 	{
-
+		programState->acceptClient(&hListen);
 	}
 
 	closesocket(hListen);
