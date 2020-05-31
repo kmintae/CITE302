@@ -20,7 +20,7 @@ class Motor:
         self.stpPin = 0
         self.enPin=0
 
-    def set(self, dirPin, stpPin,enPin):
+    def setMotor(self, dirPin, stpPin,enPin):
         gpio.setmode(gpio.BCM)
         gpio.setup(dirPin, gpio.OUT)  # setting gpio, dirPin controls direction of motor
         gpio.setup(stpPin, gpio.OUT)  # stpPin controls step number of motor, you must set connect pin on rasberry Pi 3B
@@ -35,10 +35,6 @@ class Motor:
         self.dirPin = dirPin
         self.stpPin = stpPin
 
-    def getStep(self, angle):
-        stp = int(angle / self.angPerSt)
-        return stp
-
     def getDelay(self, vel):
         # rotation per sec => step/s
         totalStep = 360.0 / self.angPerSt
@@ -48,42 +44,27 @@ class Motor:
     def getSmoothVel(self, maxVel, target, cur):
         return 20 * maxVel / (19 + abs(math.sqrt(cur / target)))
 
-    def move(self, angle, vel, smooth):
-        if (angle + self.curAng < self.minAng or angle + self.curAng < self.maxAng) and self.maxAng != 0:
-            print("False")
-            return False
-        print("1")
-
-        delay = self.getDelay(vel * self.gear)
-        stp = self.getStep(abs(angle) * self.gear)
+    def move(self, stp=0, vel=0.0):
+        #if (angle + self.curAng < self.minAng or angle + self.curAng > self.maxAng) and self.maxAng != 0:
+         #   print("False")
+          #  return False
+        delay = self.getDelay(abs(vel) * self.gear)
         counter = 0
         if (stp == 0):
             return False
 
-        if angle > 0.0:
+        if stp > 0:
             gpio.output(self.dirPin, True)
-            print("True")
         else:
             gpio.output(self.dirPin, False)
-            print("False")
 
-        if (not smooth):
-            delay = self.getDelay(vel * self.gear)
-            while counter < stp:
-                gpio.output(self.stpPin, True)
-                time.sleep(delay)
-                gpio.output(self.stpPin, False)
-                time.sleep(delay)
-                counter += 1
-        else:
-            while counter < stp:
-                v = self.getSmoothVel(vel, stp / 2, stp / 2 - counter)
-                delay = self.getDelay(v)
-                gpio.output(self.stpPin, True)
-                time.sleep(delay)
-                gpio.output(self.stpPin, False)
-                time.sleep(delay)
-                counter += 1
+
+        while counter < abs(stp):
+            gpio.output(self.stpPin, True)
+            time.sleep(delay)
+            gpio.output(self.stpPin, False)
+            time.sleep(delay)
+            counter += 1
         gpio.output(self.stpPin, False)
         return True
 

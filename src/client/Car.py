@@ -5,7 +5,7 @@ import math
 
 # Reference : https://www.youtube.com/watch?v=o-j9TReI1aQ&app=desktop
 
-import EncMotor
+from EncMotor import Motor
 import threading
 import yaml
 
@@ -21,11 +21,11 @@ config = yaml.load(open("./Config.yaml", 'r'), Loader=yaml.FullLoader)
 maxDistControl = config["MAX_MOVE_CONTROL_DIST"] * config["MOVE_KP"]
 maxAngleControl = config["MAX_ROTATE_CONTROL_ANGLE"] *config["ROTATION_KP"]
 
-class Car:
+class Platform:
     # Class Constructor
     def __init__(self):
-        self.rightMotor=EncMotor(True,config["RIGHT_WHEEL_PINS"])
-        self.LeftMotor = EncMotor(False, config["LEFT_WHEEL_PINS"])
+        self.rightMotor=Motor(True,config["RIGHT_WHEEL_PINS"])
+        self.LeftMotor = Motor(False, config["LEFT_WHEEL_PINS"])
         self.control=[0.0,0.0] # index 0 for right wheel, index 1 for left wheel
         # PID values and allowable error range for moving and rotation
         self.movpid=[config["MOVE_KP"],config["MOVE_KD"],config["MOVE_KI"],config["MOVE_TOLERANCE"]]
@@ -65,8 +65,8 @@ class Car:
         self.errorAnglePrev=errorAngle
 
     def initialize(self):
-        self.rightMotor.set()
-        self.leftMotor.set()
+        self.rightMotor.setMotor()
+        self.leftMotor.setMotor()
         self.errorAnglePrev=0.0
         self.errorPosPrev = 0.0
         self.timePrev=0.0

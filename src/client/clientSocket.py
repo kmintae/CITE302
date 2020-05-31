@@ -1,6 +1,6 @@
 from socket import *
-import RobotArm
-import Car
+from RobotArm import armClient
+from Car import Platform
 import yaml
 import time
 
@@ -13,9 +13,10 @@ def run_client():
     clientSock = socket(AF_INET, SOCK_STREAM)
     clientSock.connect((config["SERVER_IP_ADDR"], config["SERVER_PORT"]))
 
-    car = Car()
-    robotArm = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"], config["ROBOTARM_MIN_ANGLES"],
-                         config["ROBOTARM_MAX_ANGLES"], config["GPIO_SERVO_PIN"])
+    car = Platform()
+    robotArm = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"],config["GPIO_ARM_ENPINS"],
+                         config["ROBOTARM_MAX_ANGLES"],config["ROBOTARM_MIN_ANGLES"],config["GPIO_SERVO_PIN"])
+    robotArm.setArm()
 
     #instruction type: HLT, MOV, DCN, GRB, RLZ, CAL
     # Client Flow 1 : Iteration with While Loop, Executing action for robot arm instructions

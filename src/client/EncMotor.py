@@ -6,9 +6,9 @@ import RPi.GPIO as gpio  # https://pypi.python.org/pypi/RPi.GPIO more info
 import time
 import math
 
+config = yaml.load(open("./ClientConfig.yaml", 'r'), Loader=yaml.FullLoader)
 
-
-class EncMotor:
+class Motor:
 
     def __init__(self,right,pins):
         self.right = True  # motor posision => True for the right which is determined based on the direction from the rear of the robot to the front.
@@ -21,7 +21,7 @@ class EncMotor:
         self.dt_sleep=0.1 #delay for measuring actual angular velocity of wheel
 
     # set dir, pwm, start, encA, encB pins
-    def set(self):
+    def setMotor(self):
         gpio.setmode(gpio.BCM)
         for i in range (0,3):
             gpio.setup(self.pins[i], gpio.OUT) # setting gpio, dirPin, pwmPin, stpPin as output
