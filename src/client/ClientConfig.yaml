@@ -1,0 +1,54 @@
+# Server IP Address
+SERVER_IP_ADDR: 192.168.0.100
+SERVER_PORT: 1080
+
+# Maximum buffer size
+MAX_BUF_SIZE: 1024
+
+#In the configuration values below, the right and left values are determined
+# based on the direction from the rear of the robot to the front.
+
+#STEPPER: EN, DIR, STP
+# [0]: Right Stepper, [1]: Left Stepper
+GPIO_ARM_ENPPINS: [2 ,2] # GPIO EN PINS
+GPIO_ARM_DIRPINS: [3, 17] # GPIO DIR PINS
+GPIO_ARM_STPPINS: [4, 27] # GPIO STEPPER PINS
+
+GPIO_SERVO_PIN: 0 # GPIO DIR PINS
+
+#EncoderMotor: dir, pwm, start, encA, encB
+RIGHT_WHEEL_PINS: [1,12,16,20,21]
+LEFT_WHEEL_PINS: [19,13,6,5,0]
+
+#EncoderMotor config
+ENC_PULSE_PER_CYCLE: 13
+MOTOR_WHEEL_GEAR: 51
+WHEEL_SIZE: 95
+MAX_MOVE_CONTROL_DIST: 1000
+MAX_ROTATE_CONTROL_ANGLE: 90
+
+# C_Motor Configurations
+MOTOR_ARM_ANG_PER_SEC: 1.8
+MOTOR_ARM_GEAR: 10.0
+
+#Robot Arm config for initialize and motion control
+ROBOTARM_L1 : 145
+ROBOTARM_L2 : 180
+ROBOTARM_MAX_ANGLES : [200.0,200.0]
+ROBOTARM_MIN_ANGLES : [-1.0,-1.0]
+ROBOT_ARM_BEFORE_WORK: 100
+
+#ROBOT Arm Postions for stacking and lifting
+ROBOTARM_INITIAL_POSITION : [49.0, -5.0]
+ROBOT_ARM_MOVING_POSITION : [70.0,100.0]
+
+#PID Gain Values and Allowable error range(in mm for move, in angle (360) for rotation)
+MOVE_KP: 2
+MOVE_KI: 1.5
+MOVE_KD: 2
+MOVE_TOLERANCE: 5
+
+ROTATION_KP: 2
+ROTATION_KI: 1.5
+ROTATION_KD: 2
+ROTATION_TOLERANCE: 1
