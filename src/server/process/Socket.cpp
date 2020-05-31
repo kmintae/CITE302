@@ -2,75 +2,56 @@
  * Socket.h
  * Purpose: Server Socket Implementation
  * @author Mintae Kim
+ * @author chrisysl (https://kevinthegrey.tistory.com/26)
+ * @author Aaron Anderson (https://www.daniweb.com/programming/software-development/threads/6811/winsock-multi-client-servers)
  */
 
- // Reference: https://blog.naver.com/PostView.nhn?blogId=dlghks44&logNo=221262048861&parentCategoryNo=&categoryNo=21&viewDate=&isShowPopularPosts=true&from=search
 #include "Socket.h"
 
-void clientMain()
+void serverSocket()
 {
-    WSADATA wsaData;
-    SOCKET hSocket;
-    SOCKADDR_IN servAddr;
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-    std::string s;
+	SOCKET hListen;
+	hListen = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    char robotConfig[MAX_BUFF_SIZE];
-    char dataReceived[MAX_BUFF_SIZE];
+	int port;
+	port = GetPrivateProfileInt("connection", "SERVER_PORT", -1, "../../../config/server.ini");
+	if (port == -1) {
+		fprintf(stderr, "config/server.ini Not Existing. Terminating...\n");
+		return;
+	}
 
-    // WinSock Start-up for Socket Programming
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-        printf("WSAStartup() errer!");
+	SOCKADDR_IN tListenAddr = {};
+	tListenAddr.sin_family = AF_INET;
+	tListenAddr.sin_port = htons(port);
+	tListenAddr.sin_addr = htonl(INADDR_ANY);
 
-    // Socket Initialization
-    hSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (hSocket == INVALID_SOCKET)
-        printf("hSocketet() error!");
+	// Allowing Reuse of Socket Resources
+	int i = 1;
+	setsockopt(hListen, SOL_SOCKET, SO_REUSEADDR, (char*)&i, sizeof(i));
 
-    // Socket Configuration
-    memset(&servAddr, 0, sizeof(servAddr));
-    servAddr.sin_family = AF_INET;
-    servAddr.sin_addr.s_addr = inet_addr(SERVER_IP_ADDR);
-    servAddr.sin_port = htons(SERVER_PORT);
+	bind(hListen, (SOCKADDR*)&tListenAddr, sizeof(tListenAddr));
 
-    if (connect(hSocket, (SOCKADDR*)&servAddr, sizeof(servAddr)) == SOCKET_ERROR)
-        printf("connect() error!");
+	int maxRobotLimit;
+	maxRobotLimit = GetPrivateProfileInt("connection", "MAX_ROBOT_CONNECTED", 2, "../../../config/server.ini");
 
-    /// Client Flow 1 : Send Robot_Arm Number & Color Data (Optional)
+	listen(hListen, maxRobotLimit);
 
-    // Fetching Robot Configuration Data
+	SOCKADDR_IN tClntAddr = {};
+	int iClntSize = sizeof(tClntAddr);
+	SOCKET hClient = accept(hListen, (SOCKADDR*)&tClntAddr, &iClntSize);
 
-    // Sending Robot Configuration Data
+	// Using As Blocking Mode: Multi-Threading
 
-    /// Client Flow 2 : Iteration with While Loop, Executing action for robot arm instructions
-    while (true)
-    {
-        recv(hSocket, dataReceived, MAX_BUFF_SIZE, 0);
-        if (1) { // Move Front
-            robot.robotWheels.movFront();
-        }
-        else if (2) { // Move Back
-            robot.robotWheels.movBack();
-        }
-        else if (3) { // Rotate Left
-            robot.robotWheels.rotLeft();
-        }
-        else if (4) { // Rotate Right
-            robot.robotWheels.rotRight();
-        }
-        else if (5) { // GRAB
-            robot.robotWheels.hiatus();
-            robot.robotArm.grab();
-            send("");
-        }
-    }
-    send(hSocket, message, strLen, 0); // message 배열에 있는 데이터를 연결된 곳에 strLen 크기만큼 보냅니다.
-    // send(hSocket, message.c_str(), message.size(), 0);
-    recv(hSocket, message, 2, 0); // 연결된 곳에서 보낸 데이터를 message에 저장합니다. 메세지 길이는 2로 지정하였습니다.
+	while (true)
+	{
 
-    // Closing Socket
-    closesocket(hSocket);
-    WSACleanup();
+	}
 
-    return;
+	closesocket(hListen);
+
+	WSACleanup();
+	return;
 }
