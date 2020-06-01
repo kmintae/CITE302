@@ -35,8 +35,10 @@ public:
 	BrickLayerList(std::mutex* mtx, std::condition_variable *cv);
 	~BrickLayerList();
 
-	Brick* getNextSrcBrick(Robot* robot, Grid* grid, int& srcBrickLayerIndex);
-	Brick* getNextDstBrick(Robot* robot, Grid* grid, int& dstBrickLayerIndex);
+	Brick* getNextSrcBrick(Robot* robot, Grid* grid, static int& srcBrickLayerIndex);
+	Brick* getNextDstBrick(Robot* robot, Grid* grid, static int& dstBrickLayerIndex);
+
+	std::pair<Position2D, Direction2D> getFinalPose(Grid* grid, Brick* brick);
 
 	void markAsSelectedBrick(int srcBrickLayerIndex, Brick* brick);
 	void markAsGrabbedBrick(Brick* brick);
@@ -44,5 +46,6 @@ public:
 	void markAsReleasedBrick(Brick* brick);
 	void markAsDone(int srcBrickLayerIndex, Brick* srcBrick, int dstBrickLayerIndex, Brick* dstBrick);
 
+	bool isDone();
 	float getProgressRate();
 };

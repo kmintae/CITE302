@@ -18,28 +18,28 @@ Instruction::Instruction(InstructionType instType, float* param)
 	{
 	// Server -> Client 
 	case InstructionType::HLT:
-		paramCnt = 0;
+		paramCnt = HLT_PARAM;
 		break;
 	case InstructionType::MOV:
-		paramCnt = 4; // (cur_pos_x, cur_pos_y, cur_dir_x, cur_dir_y)
+		paramCnt = MOV_PARAM; // (cur_pos_x, cur_pos_y, cur_dir_x, cur_dir_y)
 		break;
 	case InstructionType::DCN:
-		paramCnt = 0;
+		paramCnt = DCN_PARAM;
 		break;
 
 	// Server <-> Client
 	case InstructionType::GRB:
-		paramCnt = 2; // (r, z)
+		paramCnt = GRB_PARAM; // (r, z)
 		break;
 	case InstructionType::RLZ:
-		paramCnt = 2; // (r, z)
+		paramCnt = RLZ_PARAM; // (r, z)
 		break;
 	case InstructionType::CAL:
-		paramCnt = 0;
+		paramCnt = CAL_PARAM;
 		break;
 	}
 	case InstructionType::PID:
-		paramCnt = 8; // curPos, curDir, keypointPos, keypointDir
+		paramCnt = PID_PARAM; // curPos, curDir, keypointPos, keypointDir
 		break;
 	}
 

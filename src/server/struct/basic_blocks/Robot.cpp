@@ -13,7 +13,8 @@ Robot::Robot(int robotNum, pair<Position2D, Direction2D>& initPose)
 	this->robotNum = robotNum;
 	this->pose = initPose;
 
-	this->src = this->dest = NULL;
+	phase = RobotPhase::STOP;
+	src = dest = NULL;
 }
 
 int Robot::getRobotNum()
@@ -37,6 +38,10 @@ std::pair<Position2D, Direction2D> Robot::getKeypoint()
 {
 	return keypoint;
 }
+std::pair<Position2D, Direction2D> Robot::getFinalPose()
+{
+	return finalPose;
+}
 
 Brick* Robot::getSourceBrick()
 {
@@ -47,23 +52,29 @@ Brick* Robot::getDestinationBrick()
 	return dest;
 }
 
-void Robot::markAsMove(Brick* srcBrick)
+void Robot::markAsMove(Brick* srcBrick, std::pair<Position2D, Direction2D> finalPose)
 {
 	phase = RobotPhase::MOVING;
 	src = srcBrick;
+	this->finalPose = finalPose;
 }
 void Robot::markAsGrab()
 {
 	phase = RobotPhase::GRAB;
 }
-void Robot::markAsLift(Brick* dstBrick)
+void Robot::markAsLift(Brick* dstBrick, std::pair<Position2D, Direction2D> finalPose)
 {
 	phase = RobotPhase::LIFTING;
 	dst = dstBrick;
+	this->finalPose = finalPose;
 }
 void Robot::markAsRelease()
 {
 	phase = RobotPhase::RELEASE;
+}
+void Robot::markAsStop()
+{
+	phase = RobotPhase::STOP;
 	src = dst = NULL;
 }
 

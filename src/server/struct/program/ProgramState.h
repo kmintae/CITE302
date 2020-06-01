@@ -14,8 +14,12 @@
 #include <utility>
 #include <stdio.h>
 
+#include "../../process/PathFinding.h"
+
 #include "../basic_blocks/Instruction.h"
 #include "../basic_blocks/Phase.h"
+#include "../basic_blocks/Brick.h"
+#include "../basic_blocks/BrickLayer.h"
 #include "../basic_blocks/Robot.h"
 
 #include "../connection/Client.h"
@@ -45,7 +49,6 @@ private:
 
 	// Status: BrickListManager, Grid
 	BrickLayerList* brickLayerList;
-	int srcBrickLayerIndex, dstBrickLayerIndex;
 	Grid* grid;
 
 	// Mutex & Condition Variable
@@ -53,10 +56,17 @@ private:
 	std::condition_variable cv_state;
 	
 	std::mutex mtx_connect;
+	std::mutex mtx_program;
+
+	// Thread
+	std::thread thread_conn;
 
 	// Variables
-	bool isWorking; // Current Program State
-	int connClientNum, maxClientNum;
+	static int srcBrickLayerIndex, dstBrickLayerIndex;
+	static bool isWorking; // Current Program State
+	static bool isTerminationActivated; // Signal
+	
+	static int connClientNum, maxClientNum;
 
 public:
 	ProgramState();
@@ -67,4 +77,7 @@ public:
 	void optitrackConnect(); // Executed in Independent Thread
 
 	void workSession(Client *client); // Executed in independent thread (One Thread per Connected Client)
+
+	// Emergency Stop
+	void makeStop();
 };
