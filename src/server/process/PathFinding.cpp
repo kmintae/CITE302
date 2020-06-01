@@ -1,3 +1,9 @@
+/**
+ * PathFinding.cpp
+ * Purpose: Path Finding Algorithm
+ * @author Mintae Kim
+ * @author Youngtae Moon
+ */
 
 #include "PathFinding.h"
 

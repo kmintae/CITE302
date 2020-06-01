@@ -18,6 +18,86 @@ Direction2D Direction2D::getUnitVector()
 }
 
 // Operator Overloading
+const Direction2D Direction2D::operator +(const Direction2D& dir2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+	float rad2 = Direction2D::vectorToRadian(dir2);
+
+	return Direction2D::radianToVector(rad1 + rad2);
+}
+Direction2D& Direction2D::operator +=(const Direction2D& dir2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+	float rad2 = Direction2D::vectorToRadian(dir2);
+
+	Direction2D sum = Direction2D::radianToVector(rad1 + rad2);
+	x = sum.x;
+	y = sum.y;
+	
+	return *this;
+}
+const Direction2D Direction2D::operator -(const Direction2D& dir2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+	float rad2 = Direction2D::vectorToRadian(dir2);
+
+	return Direction2D::radianToVector(rad1 - rad2);
+}
+Direction2D& Direction2D::operator -=(const Direction2D& dir2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+	float rad2 = Direction2D::vectorToRadian(dir2);
+
+	Direction2D sub = Direction2D::radianToVector(rad1 - rad2);
+	x = sub.x;
+	y = sub.y;
+
+	return *this;
+}
+const Direction2D Direction2D::operator +(const float rad2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+	return Direction2D::radianToVector(rad1 + rad2);
+}
+Direction2D& Direction2D::operator +=(const float rad2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+
+	Direction2D sum = Direction2D::radianToVector(rad1 + rad2);
+	x = sum.x;
+	y = sum.y;
+
+	return *this;
+}
+const Direction2D Direction2D::operator -(const float rad2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+
+	return Direction2D::radianToVector(rad1 - rad2);
+}
+Direction2D& Direction2D::operator -=(const float rad2)
+{
+	float rad1 = Direction2D::vectorToRadian(*this);
+
+	Direction2D sub = Direction2D::radianToVector(rad1 - rad2);
+	x = sub.x;
+	y = sub.y;
+
+	return *this;
+}
+bool Direction2D::operator ==(const Direction2D& dir2)
+{
+	return ((abs(Direction2D::vectorToRadian(*this - dir2))) < errorLimit);
+}
+static Direction2D Direction2D::radianToVector(float radian)
+{
+	return Direction2D(cos(radian), sin(radian));
+}
+static float Direction2D::vectorToRadian(const Direction2D& unitVector)
+{
+	return atan2(unitVector.y, unitVector.x);
+}
+
 // Vector
 const Direction2D Direction2D::operator* (const Direction2D& dir2)
 {

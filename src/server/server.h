@@ -1,3 +1,6 @@
 
+#pragma once
 
-OptitrackCommuniator optitrackCommunicator;
+#include <WinSock2.h>
+
+#pragma comment(lib,"ws2_32")

@@ -1,3 +1,8 @@
+/**
+ * PathFinding.h
+ * Purpose: Path Finding Algorithm
+ * @author Mintae Kim
+ */
 
 #pragma once
 

@@ -14,6 +14,5 @@
 #include <Windows.h>
 
 #include "../struct/program/ProgramState.h"
-#pragma comment(lib,"ws2_32")
 
 void serverSocket(ProgramState *programState);

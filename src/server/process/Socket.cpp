@@ -10,9 +10,6 @@
 
 void serverSocket(ProgramState* programState)
 {
-	WSADATA wsaData;
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
-
 	SOCKET hListen;
 	hListen = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -47,7 +44,5 @@ void serverSocket(ProgramState* programState)
 	}
 
 	closesocket(hListen);
-
-	WSACleanup();
 	return;
 }

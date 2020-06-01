@@ -8,19 +8,31 @@
 
 #include <string>
 #include <cmath>
+#include <Windows.h>
 
 #include "Vector.h"
 
 class Position2D : public Vector2D
 {
+protected:
+	float errorLimit;
 public:
-	Position2D() { };
-	Position2D(float pos_x, float pos_y) : Vector2D(pos_x, pos_y) { };
-	Position2D(Position2D const& pos) : Vector2D(pos) { };
+	Position2D() {
+		errorLimit = GetPrivateProfileInt("error", "POS_LIMIT_MM", 2, "../../../config/server.ini");
+	};
+	Position2D(float pos_x, float pos_y) : Vector2D(pos_x, pos_y) {
+		errorLimit = GetPrivateProfileInt("error", "POS_LIMIT_MM", 2, "../../../config/server.ini");
+	};
+	Position2D(Position2D const& pos) : Vector2D(pos) {
+		errorLimit = GetPrivateProfileInt("error", "POS_LIMIT_MM", 2, "../../../config/server.ini");
+	};
 
-	static float calculateDistance(const Position2D& vect1, const Position2D& vect2);
+	static float calculateDistance(const Position2D& pos1, const Position2D& pos2);
 
 	void setPos2D(float x, float y);
+
+	// Operator Overloading
+	bool operator ==(const Position2D& pos2);
 };
 
 // Only Inherits Vector3D
@@ -33,11 +45,13 @@ public:
 
 	Position2D getPos2D();
 
-	static float calculateDistance(const Position3D& vect1, const Position3D& vect2);
+	static float calculateDistance(const Position3D& pos1, const Position3D& pos2);
 
 	void setPos3D(float x, float y, float z);
 
 	// Additional Operator Overloading
 	bool operator <(const Position3D& pos2);
 	bool operator >(const Position3D& pos2);
+
+	bool operator ==(const Position3D& pos2);
 };

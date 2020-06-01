@@ -216,7 +216,7 @@ void ProgramState::workSession(Client* client)
 			std::unique_lock<std::mutex> lck(mtx_state);
 			
 			// 2-2-1. Check if Current Pose == Final Pose: Send HLT, change phase to GRAB, and break
-			if () { // TODO: Current Pose == Final Pose
+			if (robot->getPose() == robot->getFinalPose()) { // Current Pose == Final Pose
 				// Send HLT
 				SOCKET socket = client->getSocket();
 				int bytes_send = send(socket, Instruction(InstructionType::HLT, NULL).toString().c_str(), MAX_BUFF_SIZE, 0);
@@ -236,7 +236,7 @@ void ProgramState::workSession(Client* client)
 			}
 
 			// 2-2-2. Check if Current Pose == Keypoint: Send HLT, Pathfinding, Send PID, Receive DONE/ERROR, and break
-			if () { // TODO: Current Pose == Keypoint
+			if (robot->getPose() == robot->getKeypoint()) { // Current Pose == Keypoint
 				// Send HLT
 				SOCKET socket = client->getSocket();
 				int bytes_send = send(socket, Instruction(InstructionType::HLT, NULL).toString().c_str(), MAX_BUFF_SIZE, 0);
@@ -364,7 +364,7 @@ void ProgramState::workSession(Client* client)
 			std::unique_lock<std::mutex> lck(mtx_state);
 			
 			// 2-4-1. Check if Current Pose == Final Pose: Send HLT, and change phase to RLZ
-			if () { // TODO: Current Pose == Final Pose
+			if (robot->getPose() == robot->getFinalPose()) { // Current Pose == Final Pose
 				// Send HLT
 				SOCKET socket = client->getSocket();
 				int bytes_send = send(socket, Instruction(InstructionType::HLT, NULL).toString().c_str(), MAX_BUFF_SIZE, 0);
@@ -384,7 +384,7 @@ void ProgramState::workSession(Client* client)
 			}
 
 			// 2-4-2. Check if Current Pose == Keypoint: Send HLT, Send PID, Receive DONE/ERROR
-			if () { // TODO: Current Pose == Keypoint
+			if (robot->getPose() == robot->getKeypoint()) { // Current Pose == Keypoint
 				// Send HLT
 				SOCKET socket = client->getSocket();
 				int bytes_send = send(socket, Instruction(InstructionType::HLT, NULL).toString().c_str(), MAX_BUFF_SIZE, 0);

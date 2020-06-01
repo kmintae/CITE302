@@ -10,6 +10,8 @@
 #include <mutex>
 #include <Windows.h>
 #include <utility>
+#include <string>
+#include <cmath>
 
 #include "../../process/OptitrackCommunicate.h"
 
@@ -28,7 +30,9 @@ private:
 	static std::mutex mtx; // Shared
 	static bool isDestructed; // Shared
 
-	void updateArray();
+	void updateArray(std::string rawData);
+
+	static SOCKET udpSocket;
 
 public:
 	OptitrackCommunicator();

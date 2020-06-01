@@ -14,19 +14,21 @@ OptitrackCommunicator::OptitrackCommunicator() : communicator()
 	posArr = new Position2D[maxRobotLimit];
 	dirArr = new Direction2D[maxRobotLimit];
 
-	isDestructed = false;
+	OptitrackCommunicator::isDestructed = false;
 
+	// Socket Initiation
+	UDPSocket(OptitrackCommunicator::udpSocket);
+	
 	// Multithread function communicate()
 	communicator = std::thread(&OptitrackCommunicator::communicate, this);
 }
 OptitrackCommunicator::~OptitrackCommunicator()
 {
 	// Lock Acquired
-	std::unique_lock<std::mutex> lck(mtx);
+	std::unique_lock<std::mutex> lck(OptitrackCommunicator::mtx);
 
-	// TODO: Kill Thread
-	isDestructed = true;
-
+	// Kill Thread
+	OptitrackCommunicator::isDestructed = true;
 	communicator.join();
 
 	delete[] posArr;
@@ -37,13 +39,17 @@ void OptitrackCommunicator::communicate()
 {
 	while (true)
 	{
-		if (isDestructed) break;
+		if (OptitrackCommunicator::isDestructed) 
+		{
+			closesocket(OptitrackCommunicator::udpSocket);
+			break;
+		}
 
-		// TODO: Execution of OptitrackCommunicate Function
-
-		// TODO: Parsing Data
-
-		updateArray(); // TODO: param = data
+		// Fetching Optitrack Raw Data
+		std::string rawData = fetchOptitrackData(OptitrackCommunicator::udpSocket);
+		
+		// Update Array
+		updateArray(rawData);
 
 		// Sleep for 0.5s
 		Sleep(500);
@@ -51,17 +57,18 @@ void OptitrackCommunicator::communicate()
 }
 void OptitrackCommunicator::updateArray()
 {
-	// Lock Acquired
-	std::unique_lock<std::mutex> lck(mtx);
+	// 1. Parse rawData
 
-	// TODO: Update Array
+	// 2. Update Array
+	// Lock Acquired
+	std::unique_lock<std::mutex> lck(OptitrackCommunicator::mtx);
 }
 
 // Don't Forget to delete after using get Pos/Dir Array()
 std::pair<Position2D, Direction2D>* OptitrackCommunicator::getPoseArray()
 {
 	// Lock Acquired
-	std::unique_lock<std::mutex> lck(mtx);
+	std::unique_lock<std::mutex> lck(OptitrackCommunicator::mtx);
 
 	std::pair<Position2D, Direction2D>* newPoseArr = new std::pair<Position2D, Direction2D>[maxRobotLimit];
 	for (int i = 0; i < maxRobotLimit; i++) newPoseArr[i] = poseArr[i];
@@ -71,7 +78,7 @@ std::pair<Position2D, Direction2D>* OptitrackCommunicator::getPoseArray()
 std::pair<Position2D, Direction2D> OptitrackCommunicator::getPose(int robotNum)
 {
 	// Lock Acquired
-	std::unique_lock<std::mutex> lck(mtx);
+	std::unique_lock<std::mutex> lck(OptitrackCommunicator::mtx);
 
 	return poseArr[robotNum];
 }
@@ -79,7 +86,7 @@ std::pair<Position2D, Direction2D> OptitrackCommunicator::getPose(int robotNum)
 static int OptitrackCommunicator::getConnectWaitingRobotNum(std::pair<Position2D, Direction2D>* prevPoseArr)
 {
 	// Lock Acquired
-	std::unique_lock<std::mutex> lck(mtx);
+	std::unique_lock<std::mutex> lck(OptitrackCommunicator::mtx);
 
 	// TODO: Detect One with 22.5 Degree (Return -1 if Fails/Detects more than 2)
 	// Information: prevPoseArr, poseArr
