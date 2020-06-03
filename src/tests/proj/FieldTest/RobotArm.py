@@ -12,13 +12,14 @@ config = yaml.load(open("./ClientConfig.yaml", 'r'), Loader=yaml.FullLoader)
 
 class armClient:
 
-    def __init__(self, dirPins, stpPins,enPins, minAngles, servoPin):
-        initPos=config["ROBOTARM_INITIAL_POSITION"]
-        self.curAngles = calAngle(initPos[0], initPos[1])
+    def __init__(self, dirPins, stpPins,enPins, maxAngles, minAngles, servoPin):
+        initPos=config["ROBOTARM_INITIAL_ANGLE"]
+        initialPos = calPos(initPos[0], initPos[1])
+        self.curAngles = [initPos[0], initPos[1]]
         self.motorList = []
         self.slice = 5000
         self.ratio = 5.0  # ratio of rotation,  second motor rotates robot arm indirect wat
-        self.maxAngles=self.curAngles
+        self.maxAngles=maxAngles
         self.minAngles=minAngles
         self.dirPins=dirPins
         self.stpPins=stpPins
@@ -27,7 +28,7 @@ class armClient:
         gpio.setmode(gpio.BCM)
 
         gpio.setup(servoPin, gpio.OUT)
-        self.servoPwm = gpio.PWM(servoPin,100 )
+        self.servoPwm = gpio.PWM(servoPin, 50)
         self.servoPwm.start(0)
         gpio.setwarnings(False)
 
@@ -46,21 +47,24 @@ class armClient:
         self.motorList[0].unhalt()
         self.motorList[1].unhalt()
         cur = [self.curAngles[0], self.curAngles[1]]
+        print(cur)
         m = self.motorList
 
         # because the frame of robot arm always makes parallelogram
         mov = [(target[0] - cur[0]), target[1] + target[0] - (cur[1] + cur[0])]
+        print(mov)
         stp = [int(mov[0]*m[0].gear/ self.stepSize), int(mov[1]*m[1].gear/ self.stepSize)]
         m[0].curAng += (stp[0] * self.stepSize / m[0].gear)
         m[1].curAng += (stp[1] * self.stepSize / m[1].gear)
 
-        t1 = threading.Thread(target=m[0].move, args=(stp[0] , 4))
-        t2 = threading.Thread(target=m[1].move, args=(-stp[1] , 4))
+        t1 = threading.Thread(target=m[0].move, args=(stp[0] , 5))
+        t2 = threading.Thread(target=m[1].move, args=(-stp[1] , 5))
         t1.start()
         t2.start()
         t1.join()
         t2.join()
         self.curAngles = [m[0].curAng, m[1].curAng - m[0].curAng]
+        print(calPos(self.curAngles[0],self.curAngles[1]))
 
     def moveInDirectLine(self, angle_1, angle_2, resol):
         print("direct moving start")
@@ -80,13 +84,12 @@ class armClient:
             # because the frame of robot arm always makes prallelogram
             mov = [(cur[0] - before[0]), cur[1] + cur[0] - (before[1] + before[0])]
             stp = [int(mov[0]*m[0].gear / self.stepSize), int(mov[1]*m[1].gear/ self.stepSize)]
-            if(not inAngle(cur)):
-                return False
+
             if(abs(stp[0])>0 and abs(stp[1])>0):
                 len+=1
                 stpArr.append(stp)
-                v1 = 60
-                v2 = 60
+                v1 = 10
+                v2 = 10
                 if (abs(stp[0]) > abs(stp[1])):
                     v2 = v1 * abs(stp[1]) / abs(stp[0])
                 else:
@@ -108,7 +111,6 @@ class armClient:
             t1.join()
             t2.join()
         self.curAngles = before
-        return True
 
     def work(self, target_pos, grap):
         self.motorList[0].unhalt()
@@ -119,38 +121,31 @@ class armClient:
         #move before work: move to upside of brick, this movement ensures stabillity
         beforeWork=calAngle(target_pos[0],config["ROBOT_ARM_BEFORE_WORK"])
         self.move(beforeWork)
+
         target = calAngle(target_pos[0], target_pos[1])
-        if(not inPos(target_pos) or not inAngle(target)):
-            return False
-        
+
         if grap:
-            time.sleep(0.3)
+            time.sleep(0.5)
             self.servoPwm.ChangeDutyCycle(3)
-            time.sleep(0.3)
-            ret=self.moveInDirectLine(target[0], target[1], self.slice)
-            if(not ret):
-                return False
-            time.sleep(0.3)
-            self.servoPwm.ChangeDutyCycle(9.8)
-            time.sleep(0.3)
+            time.sleep(0.5)
+            self.moveInDirectLine(target[0], target[1], self.slice)
+            time.sleep(0.5)
+            self.servoPwm.ChangeDutyCycle(12)
+            time.sleep(0.5)
             self.moveInDirectLine(beforeWork[0],beforeWork[1],self.slice)
-            time.sleep(0.3)
+            time.sleep(0.5)
             self.moveToMovingPos()
         else:
-            time.sleep(0.3)
-            ret=self.moveInDirectLine(target[0], target[1], self.slice)
-            if(not ret):
-                return False
-            time.sleep(0.3)
+            time.sleep(0.5)
+            self.moveInDirectLine(target[0], target[1], self.slice)
+            time.sleep(0.5)
             self.servoPwm.ChangeDutyCycle(3)
-            time.sleep(0.3)
+            time.sleep(0.5)
             self.moveInDirectLine(beforeWork[0],beforeWork[1],self.slice)
-            time.sleep(0.3)
+            time.sleep(0.5)
             self.moveToMovingPos()
-            time.sleep(0.3)
-            self.servoPwm.ChangeDutyCycle(9.8)
-        time.sleep(1)
-        return True
+        time.sleep(2)
+
         #print(self.curAngles)
 
     def moveToMovingPos(self):
@@ -158,16 +153,7 @@ class armClient:
         arg=calAngle(movingPos[0],movingPos[1])
         print(arg)
         self.move(arg)
-        
-    def inAngle(self,angles):
-        if(angles[0]>self.maxAngles[0] or angles[1]>self.maxAngles[1]):
-            return False
-        return True
-    def inPos(self,pos):
-        if(math.sqrt(pos[0]**2+pos[1]**2)>config["ROBOTARM_MAX_WORKING_DIST"]):
-            return False
-        return True
-        
+
     def halt(self):
         self.motorList[0].halt()
         self.motorList[1].halt()
@@ -191,5 +177,16 @@ def calAngle(x, y):
 
 #test _ drawing square
 
+test = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"], config["GPIO_ARM_ENPINS"],
+                         config["ROBOTARM_MAX_ANGLES"], config["ROBOTARM_MIN_ANGLES"],config["GPIO_SERVO_PIN"])
+ang = calAngle(150.0, -85.0)
+print(ang)
+print(calPos(ang[0], ang[1]))
+tar=calPos(ang[0], ang[1])
+test.setArm()
+test.move([90.0,90.0])
+test.work([tar[0], tar[1]], True)
+
+test.work([200, -85], False)
 ang = calAngle(170.0, 0.0)
 #test.work([tar[0], tar[1]], False)

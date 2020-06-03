@@ -15,7 +15,7 @@ import yaml
 ## GPIO[2] : Down-LEFT / GPIO[3] : Down-RIGHT
 
 # Configurations
-config = yaml.load(open("./Config.yaml", 'r'), Loader=yaml.FullLoader)
+config = yaml.load(open("./ClientConfig.yaml", 'r'), Loader=yaml.FullLoader)
 
 
 maxDistControl = config["MAX_MOVE_CONTROL_DIST"] * config["MOVE_KP"]
@@ -25,7 +25,7 @@ class Platform:
     # Class Constructor
     def __init__(self):
         self.rightMotor=Motor(True,config["RIGHT_WHEEL_PINS"])
-        self.LeftMotor = Motor(False, config["LEFT_WHEEL_PINS"])
+        self.leftMotor = Motor(False, config["LEFT_WHEEL_PINS"])
         self.control=[0.0,0.0] # index 0 for right wheel, index 1 for left wheel
         # PID values and allowable error range for moving and rotation
         self.movpid=[config["MOVE_KP"],config["MOVE_KD"],config["MOVE_KI"],config["MOVE_TOLERANCE"]]
@@ -40,8 +40,55 @@ class Platform:
         self.errorAnglePrev=calRotationDegree([current[2],current[3],0],[target[2],target[3],0])
         self.target=target
         self.timePrev=time.time()
+    def offlineWheelMoving(self,right=True,target=0.0):
+        ratio = 360./1326
+        Kp = 0.2
+        Kd = 0.008
+        Ki = 0.03
+        dt = 0.
+        dt_sleep = 0.001
+        tolerance = 30.
+        start_time = time.time()
+            
+        if(right):
+            motor=self.rightMotor
+            target=target
+        else:
+            motor=self.leftMotor
+            target=-target
+            
+        error_prev = 0.
+        time_prev = 0.
+        while True:
+            motorDeg = motor.getRotationalPos()* ratio
+            error = target - motorDeg
+            de = error-error_prev
+            dt = time.time() - time_prev
+            control = Kp*error + Kd*de/dt + Ki*error*dt;
 
-    def move(self, current):
+            error_prev = error
+            time_prev = time.time()
+            motor.move(-control)
+         
+            if abs(error) <= tolerance:
+                motor.pwm.ChangeDutyCycle(0)
+                break
+            time.sleep(dt_sleep)
+    def offlineMove(self,angle1, angle2):
+        t1=threading.Thread(target=self.offlineWheelMoving,args=(True,angle1))
+        t2=threading.Thread(target=self.offlineWheelMoving,args=(False,angle2))
+        t1.start()
+        t2.start()
+        time.sleep(1)
+        return True
+    def move(self, current,accurate):
+        if(accurate):
+            self.movpid=[config["MOVE_ACC_KP"],config["MOVE_ACC_KD"],config["MOVE_ACC_KI"],config["MOVE_ACC_TOLERANCE"]]
+            self.rotpid=[config["ROTATION_ACC_KP"],config["ROTATION_ACC_KD"],config["ROTATION_ACC_KI"],config["ROTATION_ACC_TOLERANCE"]] 
+        else:
+            self.movpid=[config["MOVE_KP"],config["MOVE_KD"],config["MOVE_KI"],config["MOVE_TOLERANCE"]]
+            self.rotpid=[config["ROTATION_KP"],config["ROTATION_KD"],config["ROTATION_KI"],config["ROTATION_TOLERANCE"]]
+            
         target=self.target
         errorDist = calDist([target[0] - current[0], target[1] - current[1]])
         errorAngle = calRotationDegree([current[2], current[3], 0], [target[2], target[3], 0])
@@ -65,8 +112,6 @@ class Platform:
         self.errorAnglePrev=errorAngle
 
     def initialize(self):
-        self.rightMotor.setMotor()
-        self.leftMotor.setMotor()
         self.errorAnglePrev=0.0
         self.errorPosPrev = 0.0
         self.timePrev=0.0

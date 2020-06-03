@@ -14,8 +14,9 @@ IO.setup(encPinB, IO.IN, pull_up_down=IO.PUD_UP)
 IO.setup(pwmPin,IO.OUT)
 IO.setup(dirPin,IO.OUT)
 IO.setup(stopPin,IO.OUT)
-
+IO.setup(16,IO.OUT)
 IO.output(stopPin,False)
+IO.output(16,False)
 p = IO.PWM(19,100)
 p.start(0)
 

@@ -8,7 +8,6 @@ pinL=[19,13,6,5,0]#left motor
 #DIR=True #true for right
 #DIR=False #false for right
 
-
 ratio = 360./1326
 Kp = 0.2
 Kd = 0.015
@@ -16,9 +15,10 @@ Ki = 0.2
 dt = 0.
 dt_sleep = 0.001
 tolerance = 2.
+
 encoderPosR = 0
 encoderPosL = 0
-time.sleep(7)
+
 def encoderRightA(channel):
     global encoderPosR
     if IO.input(pinR[3]) == IO.input(pinR[4]):
@@ -43,9 +43,7 @@ IO.setup(pinL[3], IO.IN, pull_up_down=IO.PUD_UP)
 IO.setup(pinL[4], IO.IN, pull_up_down=IO.PUD_UP)
 
 IO.add_event_detect(pinR[3], IO.BOTH, callback=encoderRightA)
-IO.add_event_detect(pinR[4], IO.BOTH, callback=encoderRightB)
 IO.add_event_detect(pinL[3], IO.BOTH, callback=encoderLeftA)
-IO.add_event_detect(pinL[4], IO.BOTH, callback=encoderLeftB)
 
 
 def Motor(DIR=True):
@@ -110,8 +108,7 @@ def Motor(DIR=True):
         if(n>0):
             break
     IO.output(pins[2] , False)
-    print('time = %6.3f, enc = %d, deg = %5.1f, err = %5.1f, ctrl = %7.1f' %(time.time()-start_time, encoderPosL, motorDeg, error, control))
-    
+
 t1=threading.Thread(target=Motor,args=(True,))
 t2=threading.Thread(target=Motor,args=(False,))
 

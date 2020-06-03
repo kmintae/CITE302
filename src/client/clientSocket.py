@@ -1,5 +1,5 @@
 from socket import *
-from RobotArm import armClient
+from RobotArm import *
 from Car import Platform
 import yaml
 import time
@@ -34,20 +34,46 @@ def run_client():
             clientSock.sendall("DONE".encode())
         elif (recv_inst_tok[0] == 'MOV'):
             #[cur pos, cur dir]
-            car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])])
+            car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],False)
+        elif (recv_inst_tok[0] == 'MVL'):
+            #[cur pos, cur dir]
+            car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],True)
         elif (recv_inst_tok[0] == 'GRB'):
-            retValue=robotArm.work([recv_inst_tok[1], recv_inst_tok[2]], True)
+            retValue=robotArm.work([recv_inst_tok[1]-config["ROBOT_ARM_GRIPPER_DIST"], recv_inst_tok[2]-config["ROBOT_ARM_GRIPPER_HEIGHT"]], True)
             if(retValue):
                 clientSock.sendall("DONE".encode())
             else:
                 clientSock.sendall("ERROR".encode())
         elif (recv_inst_tok[0] == 'RLZ'):
-            retValue=robotArm.work([recv_inst_tok[1], recv_inst_tok[2]], False)
+            retValue=robotArm.work([recv_inst_tok[1]-config["ROBOT_ARM_GRIPPER_DIST"], recv_inst_tok[2]-config["ROBOT_ARM_GRIPPER_HEIGHT"]], False)
             if(retValue):
                 clientSock.sendall("DONE".encode())
             else:
                 clientSock.sendall("ERROR".encode())
 
 
-if __name__ == "__main__":
-    run_client()
+#if __name__ == "__main__":
+    #run_client()
+    
+# below codes are for tests
+#time.sleep(60)
+testCar = Platform()
+testArm=armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"], config["GPIO_ARM_ENPINS"], config["ROBOTARM_MIN_ANGLES"],config["GPIO_SERVO_PIN"])
+ang = calAngle(config["ROBOTARM_INITIAL_POSITION"][0], config["ROBOTARM_INITIAL_POSITION"][1])
+print(ang)
+ang = calAngle(200, -83.458)
+print(calPos(ang[0], ang[1]))
+tar=calPos(ang[0], ang[1])
+testArm.setArm()
+testCar.initialize()
+
+testArm.work([tar[0], tar[1]], False)
+#testCar.offlineMove(720.0,720.0)
+time.sleep(1)
+#testCar.offlineMove(720.0-360.0,720.0+360.0)
+time.sleep(1)
+#testCar.offlineMove(720.0-360.0+720,720.0+360.0+720)
+time.sleep(1)
+#testArm.work([200, -85], False)
+#time.sleep(1)
+testArm.move(calAngle(config["ROBOTARM_INITIAL_POSITION"][0], config["ROBOTARM_INITIAL_POSITION"][1]))
