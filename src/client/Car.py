@@ -40,6 +40,9 @@ class Platform:
         self.errorAnglePrev=calRotationDegree([current[2],current[3],0],[target[2],target[3],0])
         self.target=target
         self.timePrev=time.time()
+    def setPID(self,kp,kd,ki,tol,kp_r,kd_r,ki_r,tol_r):
+        self.movpid=[kp,kd,ki,tol]
+        self.rotpid=[kp_r,kd_r,ki_r,tol_r]
     def offlineWheelMoving(self,right=True,target=0.0):
         ratio = 360./1326
         Kp = 0.2
@@ -82,13 +85,14 @@ class Platform:
         time.sleep(1)
         return True
     def move(self, current,accurate):
-        if(accurate):
+        '''
+        if(accurate&&not test):
             self.movpid=[config["MOVE_ACC_KP"],config["MOVE_ACC_KD"],config["MOVE_ACC_KI"],config["MOVE_ACC_TOLERANCE"]]
             self.rotpid=[config["ROTATION_ACC_KP"],config["ROTATION_ACC_KD"],config["ROTATION_ACC_KI"],config["ROTATION_ACC_TOLERANCE"]] 
-        else:
+        elif(not accurate&&not test):
             self.movpid=[config["MOVE_KP"],config["MOVE_KD"],config["MOVE_KI"],config["MOVE_TOLERANCE"]]
             self.rotpid=[config["ROTATION_KP"],config["ROTATION_KD"],config["ROTATION_KI"],config["ROTATION_TOLERANCE"]]
-            
+            '''
         target=self.target
         errorDist = calDist([target[0] - current[0], target[1] - current[1]])
         errorAngle = calRotationDegree([current[2], current[3], 0], [target[2], target[3], 0])

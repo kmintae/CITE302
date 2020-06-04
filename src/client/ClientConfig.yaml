@@ -1,12 +1,14 @@
 # Server IP Address
-SERVER_IP_ADDR: 192.168.0.100
-SERVER_PORT: 1080
+SERVER_IP_ADDR: 192.168.0.149
+SERVER_PORT: 8000
 
 # Maximum buffer size
 MAX_BUF_SIZE: 1024
 
 #In the configuration values below, the right and left values are determined
 # based on the direction from the rear of the robot to the front.
+
+ROBOT_NUMBER: "0"
 
 #STEPPER: EN, DIR, STP
 # [1]: Right Stepper, [0]: Left Stepper

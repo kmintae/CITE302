@@ -80,7 +80,7 @@ class armClient:
             # because the frame of robot arm always makes prallelogram
             mov = [(cur[0] - before[0]), cur[1] + cur[0] - (before[1] + before[0])]
             stp = [int(mov[0]*m[0].gear / self.stepSize), int(mov[1]*m[1].gear/ self.stepSize)]
-            if(not inAngle(cur)):
+            if(not self.inAngle(cur)):
                 return False
             if(abs(stp[0])>0 and abs(stp[1])>0):
                 len+=1
@@ -120,7 +120,7 @@ class armClient:
         beforeWork=calAngle(target_pos[0],config["ROBOT_ARM_BEFORE_WORK"])
         self.move(beforeWork)
         target = calAngle(target_pos[0], target_pos[1])
-        if(not inPos(target_pos) or not inAngle(target)):
+        if(not self.inPos(target_pos) or not self.inAngle(target)):
             return False
         
         if grap:
@@ -163,6 +163,7 @@ class armClient:
         if(angles[0]>self.maxAngles[0] or angles[1]>self.maxAngles[1]):
             return False
         return True
+    
     def inPos(self,pos):
         if(math.sqrt(pos[0]**2+pos[1]**2)>config["ROBOTARM_MAX_WORKING_DIST"]):
             return False
