@@ -2,6 +2,7 @@ import sys
 import RPi.GPIO as gpio  # https://pypi.python.org/pypi/RPi.GPIO more info
 import time
 import math
+import numpy as np
 
 # Reference : https://www.youtube.com/watch?v=o-j9TReI1aQ&app=desktop
 
@@ -23,9 +24,9 @@ maxAngleControl = config["MAX_ROTATE_CONTROL_ANGLE"] *config["ROTATION_KP"]
 
 class Platform:
     # Class Constructor
-    def __init__(self):
-        self.rightMotor=Motor(True,config["RIGHT_WHEEL_PINS"])
-        self.leftMotor = Motor(False, config["LEFT_WHEEL_PINS"])
+    def __init__(self,pwm_r,pwm_l):
+        self.rightMotor=Motor(True,config["RIGHT_WHEEL_PINS"],pwm_r)
+        self.leftMotor = Motor(False, config["LEFT_WHEEL_PINS"],pwm_l)
         self.control=[0.0,0.0] # index 0 for right wheel, index 1 for left wheel
         # PID values and allowable error range for moving and rotation
         self.movpid=[config["MOVE_KP"],config["MOVE_KD"],config["MOVE_KI"],config["MOVE_TOLERANCE"]]
@@ -37,7 +38,7 @@ class Platform:
 
     def setTarget (self,current,target):
         self.errorDistPrev=calDist([target[0]-current[0],target[1]-current[1]])
-        self.errorAnglePrev=calRotationDegree([current[2],current[3],0],[target[2],target[3],0])
+        self.errorAnglePrev=calRotationDegree([current[2],current[3]],[target[2],target[3]])
         self.target=target
         self.timePrev=time.time()
     def setPID(self,kp,kd,ki,tol,kp_r,kd_r,ki_r,tol_r):
@@ -95,6 +96,8 @@ class Platform:
             '''
         target=self.target
         errorDist = calDist([target[0] - current[0], target[1] - current[1]])
+        if(abs(calRotationDegree([target[0] - current[0], target[1] - current[1]],[current[2], current[3]]))>90.0):
+            errorDist=-errorDist
         errorAngle = calRotationDegree([current[2], current[3], 0], [target[2], target[3], 0])
         de_dist=errorDist-self.errorDistPrev
         de_angle=errorAngle-self.errorAnglePrev
@@ -105,7 +108,7 @@ class Platform:
         #MAXIMUM velocity of robot is 0.5m/s
         # for 1m error PID value becomes about 1000*Kp (=maxControlValue)
         # and we set this as a reference and caculate the ratio (because pwm uses duty cycle( in percentage = max 100%))
-
+        print()
         right_control= (control_dist/maxDistControl + control_angle*0.5/maxAngleControl)
         left_control = (control_dist / maxDistControl - control_angle * 0.5 / maxAngleControl)
         self.rightMotor.move(right_control)
@@ -116,6 +119,7 @@ class Platform:
         self.errorAnglePrev=errorAngle
 
     def initialize(self):
+
         self.errorAnglePrev=0.0
         self.errorPosPrev = 0.0
         self.timePrev=0.0
@@ -127,16 +131,24 @@ class Platform:
 
 def calDist(pos):
     return (pos[0]**2+pos[1]**2)**0.5
+
+
 def calRotationDegree(dir1,dir2):
     #make dir1 & dir2 to unit direction vector
     #if rotation angle is positive than it means that the car must rotate ccw to reach dir2
-    dir1= dir1 /(np.linalg.norm(dir1))
-    dir2 = (dir2 / (np.linalg.norm(dir2)))
-    dotProduct=(dir1*dir2)
-    angle =180*(math.acos(dotProduct[0]+dotProduct[1]))/math.pi
+    len1=math.sqrt(dir1[0]**2.0+dir1[1]**2.0)
+    len2=math.sqrt(dir2[0]**2.0+dir2[1]**2.0)
+    if(len1==0 or len2==0):
+        return 0
+    dir1= [dir1[0]/len1,dir1[1]/len1]
+    dir2 = [dir2[0]/len2,dir2[1]/len2]
+    dotProduct=dir1[0]*dir2[0]+dir1[1]*dir2[1]
+    if(abs(dotProduct)>1.0):
+        return 0.0
+    angle =180*(math.acos(dotProduct))/math.pi
 
-    crossProduct=np.cross(dir1,dir2)
-    if(crossProduct[2]>0):
-        return angle
-    else:
+    crossProduct=-(dir1[0]*dir2[1]-dir1[1]*dir2[0])
+    if(crossProduct>0):
         return -angle
+    else:
+        return angle

@@ -3,64 +3,92 @@ from RobotArm import *
 from Car import Platform
 import yaml
 import time
+import RPi.GPIO as gpio 
 
 # from C_Motor.Car import Car
 
 # Configurations
 config = yaml.load(open("./ClientConfig.yaml", 'r'), Loader=yaml.FullLoader)
+gpio.setmode(gpio.BCM)
+pin1=config["RIGHT_WHEEL_PINS"][1]
+pin2=config["LEFT_WHEEL_PINS"][1]
+servo=config["GPIO_SERVO_PIN"]
+
+gpio.setmode(gpio.BCM)
+gpio.setup(pin1, gpio.OUT)
+gpio.setup(pin2, gpio.OUT)
+gpio.setup(servo, gpio.OUT)
+pwm_r=gpio.PWM(pin1,1000)
+pwm_l=gpio.PWM(pin2,1000)
+servopwm=gpio.PWM(servo,100 )
+
+car = Platform(pwm_r,pwm_l)
+robotArm = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"],config["GPIO_ARM_ENPINS"],
+                            config["ROBOTARM_MIN_ANGLES"],servopwm)
+robotArm.setArm()
 
 def run_client():
-    clientSock = socket(AF_INET, SOCK_STREAM)
     while(True):
         try:
+            clientSock = socket(AF_INET, SOCK_STREAM)
             print("start tcp connection")
             clientSock.connect((config["SERVER_IP_ADDR"], config["SERVER_PORT"]))
-        except:
+            print("server connected")
+            clientSock.sendall(config["ROBOT_NUMBER"].encode())
+
+
+            #instruction type: HLT, MOV, DCN, GRB, RLZ, CAL
+            # Client Flow 1 : Iteration with While Loop, Executing action for robot arm instructions
+            while (True):
+                recv_inst = clientSock.recv(config["MAX_BUF_SIZE"]).decode("UTF-8")
+                inst = recv_inst.split(' ')
+
+                if (inst[0] == 'HLT'):
+                    print("hlt")
+                    car.halt()
+                    robotArm.halt()
+                elif (inst[0] == 'SET'):
+                    print("set")
+                    print(inst)
+                    car.setPID(float(inst[1]),float(inst[2]),float(inst[3]),float(inst[4]),float(inst[5]),float(inst[6]),float(inst[7]),float(inst[8]))
+                    clientSock.sendall("DONE".encode())
+                elif (inst[0] == 'PID'):
+                    print("pid")
+                    print(inst)
+                    #[cur pos, cur dir],[ tar pos, tar dir]
+                    car.initialize()
+                    car.setTarget([float(inst[1]),float(inst[2]),float(inst[3]),float(inst[4])],[float(inst[5]),float(inst[6]),float(inst[7]),float(inst[8])])
+                    clientSock.sendall("DONE".encode())
+                elif (inst[0] == 'MOV'):
+                    #cur pos, cur dir]
+                    print("mov")
+                    car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],False)
+                    clientSock.sendall("DONE".encode())
+                elif (inst[0] == 'MVL'):
+                    print("mvl")
+                    #[cur pos, cur dir]
+                    car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],True)
+                elif (inst[0] == 'GRB'):
+                    print("grb")
+                    retValue=robotArm.work([inst[1]-config["ROBOT_ARM_GRIPPER_DIST"], inst[2]+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
+                    if(retValue):
+                        clientSock.sendall("DONE".encode())
+                    else:
+                        clientSock.sendall("ERROR".encode())
+                elif (inst[0] == 'RLZ'):
+                    print("rlz")
+                    retValue=robotArm.work([inst[1]-config["ROBOT_ARM_GRIPPER_DIST"], inst[2]+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], False)
+                    if(retValue):
+                        clientSock.sendall("DONE".encode())
+                    else:
+                        clientSock.sendall("ERROR".encode())
+        except error:
+            car.rightMotor.pwm.ChangeDutyCycle(0)
+            car.leftMotor.pwm.ChangeDutyCycle(0)
             print("try again")
             time.sleep(3)
             continue
-        print("server connected")
-        clientSock.sendall(config["ROBOT_NUMBER"].encode())
-        car = Platform()
-        robotArm = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"],config["GPIO_ARM_ENPINS"],
-                        config["ROBOTARM_MIN_ANGLES"],config["GPIO_SERVO_PIN"])
-        robotArm.setArm()
-
-        #instruction type: HLT, MOV, DCN, GRB, RLZ, CAL
-        # Client Flow 1 : Iteration with While Loop, Executing action for robot arm instructions
-        while (True):
-            recv_inst = clientSock.recv(config["MAX_BUF_SIZE"]).decode()
-            inst_inst_tok = recv_inst.split(' ')
-
-            if (recv_inst_tok[0] == 'HLT'):
-                car.halt()
-                robotArm.halt()
-            elif (recv_inst_tok[0] == 'SET'):
-                car.setPID(float(inst[1]),float(inst[2]),float(inst[3]),float(inst[4]),float(inst[5]),float(inst[6]),float(inst[7]),float(inst[8]))
-                clientSock.sendall("DONE".encode())
-            elif (recv_inst_tok[0] == 'PID'):
-                #[cur pos, cur dir],[ tar pos, tar dir]
-                car.initialize()
-                car.setTarget([float(inst[1]),float(inst[2]),float(inst[3]),float(inst[4])],[float(inst[5]),float(inst[6]),float(inst[7]),float(inst[8])])
-                clientSock.sendall("DONE".encode())
-            elif (recv_inst_tok[0] == 'MOV'):
-                #[cur pos, cur dir]
-                car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],False)
-            elif (recv_inst_tok[0] == 'MVL'):
-                #[cur pos, cur dir]
-                car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],True)
-            elif (recv_inst_tok[0] == 'GRB'):
-                retValue=robotArm.work([recv_inst_tok[1]-config["ROBOT_ARM_GRIPPER_DIST"]-config["ROBOT_ARM_CENTER_DIST"], recv_inst_tok[2]+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
-                if(retValue):
-                    clientSock.sendall("DONE".encode())
-                else:
-                    clientSock.sendall("ERROR".encode())
-            elif (recv_inst_tok[0] == 'RLZ'):
-                retValue=robotArm.work([recv_inst_tok[1]-config["ROBOT_ARM_GRIPPER_DIST"]-config["ROBOT_ARM_CENTER_DIST"], recv_inst_tok[2]+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], False)
-                if(retValue):
-                    clientSock.sendall("DONE".encode())
-                else:
-                    clientSock.sendall("ERROR".encode())
+        
 
 
 if __name__ == "__main__":

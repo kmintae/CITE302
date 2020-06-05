@@ -12,7 +12,7 @@ config = yaml.load(open("./ClientConfig.yaml", 'r'), Loader=yaml.FullLoader)
 
 class armClient:
 
-    def __init__(self, dirPins, stpPins,enPins, minAngles, servoPin):
+    def __init__(self, dirPins, stpPins,enPins, minAngles, servopwm):
         initPos=config["ROBOTARM_INITIAL_POSITION"]
         self.curAngles = calAngle(initPos[0], initPos[1])
         self.motorList = []
@@ -26,8 +26,7 @@ class armClient:
         self.stepSize=config["MOTOR_ARM_ANG_PER_STEP"]
         gpio.setmode(gpio.BCM)
 
-        gpio.setup(servoPin, gpio.OUT)
-        self.servoPwm = gpio.PWM(servoPin,100 )
+        self.servoPwm = servopwm
         self.servoPwm.start(0)
         gpio.setwarnings(False)
 
