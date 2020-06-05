@@ -46,7 +46,8 @@ def run_client():
                 if (inst[0] == 'HLT'):
                     print("hlt")
                     car.halt()
-                    robotArm.halt()
+                    #robotArm.halt()
+                    clientSock.sendall("DONE".encode())
                 elif (inst[0] == 'SET'):
                     print("set")
                     print(inst)
@@ -68,6 +69,8 @@ def run_client():
                     print("mvl")
                     #[cur pos, cur dir]
                     car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],True)
+                    clientSock.sendall("DONE".encode())
+                    
                 elif (inst[0] == 'GRB'):
                     print("grb")
                     retValue=robotArm.work([inst[1]-config["ROBOT_ARM_GRIPPER_DIST"], inst[2]+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
@@ -86,7 +89,7 @@ def run_client():
             car.rightMotor.pwm.ChangeDutyCycle(0)
             car.leftMotor.pwm.ChangeDutyCycle(0)
             print("try again")
-            time.sleep(3)
+            time.sleep(0.5)
             continue
         
 

@@ -32,15 +32,19 @@ class Platform:
         self.movpid=[config["MOVE_KP"],config["MOVE_KD"],config["MOVE_KI"],config["MOVE_TOLERANCE"]]
         self.rotpid=[config["ROTATION_KP"],config["ROTATION_KD"],config["ROTATION_KI"],config["ROTATION_TOLERANCE"]]
         self.errorAnglePrev=0.0
-        self.errorPosPrev = 0.0
+        self.errorDistPrev = 0.0
         self.timePrev=0.0
-        self.target=[0.0,0.0,0.0]
+        self.target=[0.0,0.0,0.0,0.0]
+        self.errorDistIntegral=0.0
+        self.errorAngleIntegral=0.0
 
     def setTarget (self,current,target):
         self.errorDistPrev=calDist([target[0]-current[0],target[1]-current[1]])
         self.errorAnglePrev=calRotationDegree([current[2],current[3]],[target[2],target[3]])
         self.target=target
         self.timePrev=time.time()
+        self.errorIntegral=0.0
+        self.errorAngleIntegral=0.0
     def setPID(self,kp,kd,ki,tol,kp_r,kd_r,ki_r,tol_r):
         self.movpid=[kp,kd,ki,tol]
         self.rotpid=[kp_r,kd_r,ki_r,tol_r]
@@ -85,7 +89,7 @@ class Platform:
         t2.start()
         time.sleep(1)
         return True
-    def move(self, current,accurate):
+    def move(self, current,rotate):
         '''
         if(accurate&&not test):
             self.movpid=[config["MOVE_ACC_KP"],config["MOVE_ACC_KD"],config["MOVE_ACC_KI"],config["MOVE_ACC_TOLERANCE"]]
@@ -95,26 +99,50 @@ class Platform:
             self.rotpid=[config["ROTATION_KP"],config["ROTATION_KD"],config["ROTATION_KI"],config["ROTATION_TOLERANCE"]]
             '''
         target=self.target
+        target=[self.target[0],self.target[1],target[0] - current[0], target[1] - current[1]]
         errorDist = calDist([target[0] - current[0], target[1] - current[1]])
-        if(abs(calRotationDegree([target[0] - current[0], target[1] - current[1]],[current[2], current[3]]))>90.0):
+        if(abs(calRotationDegree([target[2],target[3]],[current[2], current[3]]))>90.0):
             errorDist=-errorDist
-        errorAngle = calRotationDegree([current[2], current[3], 0], [target[2], target[3], 0])
+        errorAngle = calRotationDegree([current[2], current[3]], [target[2], target[3]])
         de_dist=errorDist-self.errorDistPrev
         de_angle=errorAngle-self.errorAnglePrev
         dt=time.time()-self.timePrev
-        control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*errorDist*dt;
-        control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*errorAngle*dt;
-
+        self.timePrev=time.time()
+        self.errorDistIntegral+=errorDist*dt
+        self.errorAngleIntegral+=errorAngle*dt
+        
+        control_angle=0.0
+        control_dist=0.0
+        
+        if(rotate):
+            control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+        else: 
+            
+            if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0):
+                if(abs(errorDist)>50.0):
+                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                else:
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+            else:
+                if(abs(errorDist)>120.0):
+                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+                else:
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+        #target=self.target
         #MAXIMUM velocity of robot is 0.5m/s
         # for 1m error PID value becomes about 1000*Kp (=maxControlValue)
         # and we set this as a reference and caculate the ratio (because pwm uses duty cycle( in percentage = max 100%))
+        #control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+        #control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+
         print()
-        right_control= (control_dist/maxDistControl + control_angle*0.5/maxAngleControl)
-        left_control = (control_dist / maxDistControl - control_angle * 0.5 / maxAngleControl)
+        right_control= (control_dist + control_angle*0.5)
+        left_control = (control_dist - control_angle * 0.5)
         self.rightMotor.move(right_control)
         self.leftMotor.move(left_control)
 
-        self.timePrev=time.time()
+        
         self.errorDistPrev=errorDist
         self.errorAnglePrev=errorAngle
 
@@ -123,6 +151,10 @@ class Platform:
         self.errorAnglePrev=0.0
         self.errorPosPrev = 0.0
         self.timePrev=0.0
+        self.errorDistIntegral=0.0
+        self.errorAngleIntegral=0.0
+        self.rightMotor.move(0.0)
+        self.leftMotor.move(0.0)
 
     def halt(self):
         self.initialize()

@@ -51,15 +51,15 @@ ROBOTARM_INITIAL_ANGLE : [90.0, 90.0]
 ROBOT_ARM_MOVING_POSITION : [60.0,260.0]
 
 #PID Gain Values and Allowable error range(in mm for move, in angle (360) for rotation)
-MOVE_KP: 2
-MOVE_KI: 1.5
-MOVE_KD: 2
-MOVE_TOLERANCE: 15
+MOVE_KP: 0.25
+MOVE_KI: 0.0006
+MOVE_KD: 0.036
+MOVE_TOLERANCE: 20
 
-ROTATION_KP: 2
-ROTATION_KI: 1.5
-ROTATION_KD: 2
-ROTATION_TOLERANCE: 10
+ROTATION_KP: 1.2
+ROTATION_KI: 0.03
+ROTATION_KD: 0.9
+ROTATION_TOLERANCE: 5
 
 #PID Gain Values and Allowable error range for accurate moving before lifting or stacking
 MOVE_ACC_KP: 2
