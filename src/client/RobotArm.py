@@ -184,7 +184,7 @@ def calPos(a, b):
 def calAngle(x, y):
     l3 = math.sqrt(x ** 2 + y ** 2)
     tan = math.atan(y / x)
-    # cosine second law,  a3,a2
+        # cosine second law,  a3,a2
     a3 = math.acos((l3 ** 2 - l1 ** 2 - l2 ** 2) / (-2.0 * l1 * l2))
     a2 = math.acos((l2 ** 2 - l3 ** 2 - l1 ** 2) / (-2.0 * l1 * l3))
     return [(tan + a2) * 180 / math.pi, a3 * 180 / math.pi]

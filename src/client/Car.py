@@ -37,14 +37,16 @@ class Platform:
         self.target=[0.0,0.0,0.0,0.0]
         self.errorDistIntegral=0.0
         self.errorAngleIntegral=0.0
+        self.dir_before=[0.0,0.0]
 
     def setTarget (self,current,target):
+        self.target=target
         self.errorDistPrev=calDist([target[0]-current[0],target[1]-current[1]])
         self.errorAnglePrev=calRotationDegree([current[2],current[3]],[target[2],target[3]])
-        self.target=target
         self.timePrev=time.time()
-        self.errorIntegral=0.0
+        self.errorDistIntegral=0.0
         self.errorAngleIntegral=0.0
+        self.dir_before=[0.0,0.0]
     def setPID(self,kp,kd,ki,tol,kp_r,kd_r,ki_r,tol_r):
         self.movpid=[kp,kd,ki,tol]
         self.rotpid=[kp_r,kd_r,ki_r,tol_r]
@@ -89,15 +91,28 @@ class Platform:
         t2.start()
         time.sleep(1)
         return True
+    def rotate(self,current):
+       
+        target=self.target
+        errorAngle = calRotationDegree([current[2], current[3]], [target[2], target[3]])
+        de_angle=errorAngle-self.errorAnglePrev
+        dt=time.time()-self.timePrev
+        self.timePrev=time.time()
+        self.errorAngleIntegral+=errorAngle*dt
+        control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+        right_control= ( control_angle*0.5)
+        left_control = (- control_angle * 0.5)
+        print([errorAngle,dt,de_angle,self.errorAngleIntegral])
+        t1 = threading.Thread(target= self.rightMotor.move, args=(right_control,))
+        t2 = threading.Thread(target=self.leftMotor.move, args=(left_control,))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+
+        self.errorAnglePrev=errorAngle
+        
     def move(self, current,rotate):
-        '''
-        if(accurate&&not test):
-            self.movpid=[config["MOVE_ACC_KP"],config["MOVE_ACC_KD"],config["MOVE_ACC_KI"],config["MOVE_ACC_TOLERANCE"]]
-            self.rotpid=[config["ROTATION_ACC_KP"],config["ROTATION_ACC_KD"],config["ROTATION_ACC_KI"],config["ROTATION_ACC_TOLERANCE"]] 
-        elif(not accurate&&not test):
-            self.movpid=[config["MOVE_KP"],config["MOVE_KD"],config["MOVE_KI"],config["MOVE_TOLERANCE"]]
-            self.rotpid=[config["ROTATION_KP"],config["ROTATION_KD"],config["ROTATION_KI"],config["ROTATION_TOLERANCE"]]
-            '''
         target=self.target
         target=[self.target[0],self.target[1],target[0] - current[0], target[1] - current[1]]
         errorDist = calDist([target[0] - current[0], target[1] - current[1]])
@@ -113,22 +128,20 @@ class Platform:
         
         control_angle=0.0
         control_dist=0.0
-        
-        if(rotate):
-            control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
-        else: 
-            
-            if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0):
-                if(abs(errorDist)>50.0):
-                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
-                else:
-                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+        if(abs(calRotationDegree([target[2],target[3]],self.dir_before))>8.0):
+            self.dir_before=[target[2],target[3]]
+            self.errorAngleIntegral=0
+        if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0):
+            if(abs(errorDist)>50.0):
+                control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
             else:
-                if(abs(errorDist)>120.0):
-                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
-                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
-                else:
-                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+                control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+        else:
+            if(abs(errorDist)>120.0):
+                control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+            else:
+                control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
         #target=self.target
         #MAXIMUM velocity of robot is 0.5m/s
         # for 1m error PID value becomes about 1000*Kp (=maxControlValue)
@@ -139,12 +152,17 @@ class Platform:
         print()
         right_control= (control_dist + control_angle*0.5)
         left_control = (control_dist - control_angle * 0.5)
-        self.rightMotor.move(right_control)
-        self.leftMotor.move(left_control)
+        t1 = threading.Thread(target= self.rightMotor.move, args=(right_control,))
+        t2 = threading.Thread(target= self.leftMotor.move, args=(left_control,))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
 
-        
         self.errorDistPrev=errorDist
         self.errorAnglePrev=errorAngle
+        
+        
 
     def initialize(self):
 

@@ -63,24 +63,26 @@ def run_client():
                 elif (inst[0] == 'MOV'):
                     #cur pos, cur dir]
                     print("mov")
+                    print(inst)
                     car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],False)
                     clientSock.sendall("DONE".encode())
                 elif (inst[0] == 'MVL'):
                     print("mvl")
                     #[cur pos, cur dir]
-                    car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],True)
+                    print(inst)
+                    car.rotate([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])])
                     clientSock.sendall("DONE".encode())
                     
                 elif (inst[0] == 'GRB'):
                     print("grb")
-                    retValue=robotArm.work([inst[1]-config["ROBOT_ARM_GRIPPER_DIST"], inst[2]+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
+                    retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+10.0+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
                     if(retValue):
                         clientSock.sendall("DONE".encode())
                     else:
                         clientSock.sendall("ERROR".encode())
                 elif (inst[0] == 'RLZ'):
                     print("rlz")
-                    retValue=robotArm.work([inst[1]-config["ROBOT_ARM_GRIPPER_DIST"], inst[2]+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], False)
+                    retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+10.0+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], False)
                     if(retValue):
                         clientSock.sendall("DONE".encode())
                     else:
