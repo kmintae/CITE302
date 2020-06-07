@@ -28,6 +28,8 @@ robotArm = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"],conf
 robotArm.setArm()
 
 def run_client():
+    phase=0
+    back=False
     while(True):
         try:
             clientSock = socket(AF_INET, SOCK_STREAM)
@@ -48,12 +50,18 @@ def run_client():
                     car.halt()
                     #robotArm.halt()
                     clientSock.sendall("DONE".encode())
+                    print("hlt")
                 elif (inst[0] == 'SET'):
                     print("set")
                     print(inst)
                     car.setPID(float(inst[1]),float(inst[2]),float(inst[3]),float(inst[4]),float(inst[5]),float(inst[6]),float(inst[7]),float(inst[8]))
                     clientSock.sendall("DONE".encode())
                 elif (inst[0] == 'PID'):
+                    if(phase==1):
+                        back=True
+                        phase=0
+                    else:
+                        back=False
                     print("pid")
                     print(inst)
                     #[cur pos, cur dir],[ tar pos, tar dir]
@@ -61,10 +69,11 @@ def run_client():
                     car.setTarget([float(inst[1]),float(inst[2]),float(inst[3]),float(inst[4])],[float(inst[5]),float(inst[6]),float(inst[7]),float(inst[8])])
                     clientSock.sendall("DONE".encode())
                 elif (inst[0] == 'MOV'):
+                    
                     #cur pos, cur dir]
                     print("mov")
                     print(inst)
-                    car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],False)
+                    car.move([float(inst[1]), float(inst[2]), float(inst[3]), float(inst[4])],back)
                     clientSock.sendall("DONE".encode())
                 elif (inst[0] == 'MVL'):
                     print("mvl")
@@ -74,13 +83,16 @@ def run_client():
                     clientSock.sendall("DONE".encode())
                     
                 elif (inst[0] == 'GRB'):
+                    phase=1
                     print("grb")
+                    print(inst)
                     retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+10.0+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
                     if(retValue):
                         clientSock.sendall("DONE".encode())
                     else:
                         clientSock.sendall("ERROR".encode())
                 elif (inst[0] == 'RLZ'):
+                    phase=1
                     print("rlz")
                     retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+10.0+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], False)
                     if(retValue):

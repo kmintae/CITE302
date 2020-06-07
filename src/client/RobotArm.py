@@ -116,39 +116,39 @@ class armClient:
         cur = [self.curAngles[0], self.curAngles[1]]
         
         #move before work: move to upside of brick, this movement ensures stabillity
-        beforeWork=calAngle(target_pos[0],config["ROBOT_ARM_BEFORE_WORK"])
+        beforeWork=calAngle(target_pos[0],target_pos[1]+config["ROBOT_ARM_BEFORE_WORK"])
         self.move(beforeWork)
         target = calAngle(target_pos[0], target_pos[1])
         if(not self.inPos(target_pos) or not self.inAngle(target)):
             return False
         
         if grap:
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.servoPwm.ChangeDutyCycle(3)
-            time.sleep(0.3)
+            time.sleep(0.1)
             ret=self.moveInDirectLine(target[0], target[1], self.slice)
             if(not ret):
                 return False
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.servoPwm.ChangeDutyCycle(9.8)
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.moveInDirectLine(beforeWork[0],beforeWork[1],self.slice)
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.moveToMovingPos()
         else:
-            time.sleep(0.3)
+            time.sleep(0.1)
             ret=self.moveInDirectLine(target[0], target[1], self.slice)
             if(not ret):
                 return False
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.servoPwm.ChangeDutyCycle(3)
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.moveInDirectLine(beforeWork[0],beforeWork[1],self.slice)
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.moveToMovingPos()
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.servoPwm.ChangeDutyCycle(9.8)
-        time.sleep(1)
+        time.sleep(0.2)
         return True
         #print(self.curAngles)
 

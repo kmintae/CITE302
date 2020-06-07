@@ -112,42 +112,97 @@ class Platform:
 
         self.errorAnglePrev=errorAngle
         
-    def move(self, current,rotate):
-        target=self.target
-        target=[self.target[0],self.target[1],target[0] - current[0], target[1] - current[1]]
-        errorDist = calDist([target[0] - current[0], target[1] - current[1]])
-        if(abs(calRotationDegree([target[2],target[3]],[current[2], current[3]]))>90.0):
-            errorDist=-errorDist
-        errorAngle = calRotationDegree([current[2], current[3]], [target[2], target[3]])
-        de_dist=errorDist-self.errorDistPrev
-        de_angle=errorAngle-self.errorAnglePrev
-        dt=time.time()-self.timePrev
-        self.timePrev=time.time()
-        self.errorDistIntegral+=errorDist*dt
-        self.errorAngleIntegral+=errorAngle*dt
-        
+    def move(self, current,back):
         control_angle=0.0
         control_dist=0.0
-        if(abs(calRotationDegree([target[2],target[3]],self.dir_before))>8.0):
-            self.dir_before=[target[2],target[3]]
-            self.errorAngleIntegral=0
-        if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0):
-            if(abs(errorDist)>50.0):
-                control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+        errorDist=0.0
+        errorAngle=0.0
+        if(back):
+            target=self.target
+            target=[self.target[0],self.target[1],target[0] - current[0], target[1] - current[1]]
+            errorDist = calDist([target[0] - current[0], target[1] - current[1]])
+            
+            errorAngle = calRotationDegree([current[2], current[3]], [target[2], target[3]])
+            if(abs(calRotationDegree([target[2],target[3]],[current[2], current[3]]))>90.0):
+                errorDist=-errorDist
+                if(errorAngle>0.0):
+                    errorAngle=errorAngle-180.0
+                else:
+                    errorAngle=180.0-errorAngle
+            de_dist=errorDist-self.errorDistPrev
+            de_angle=errorAngle-self.errorAnglePrev
+            dt=time.time()-self.timePrev
+            self.timePrev=time.time()
+            self.errorDistIntegral+=errorDist*dt
+            self.errorAngleIntegral+=errorAngle*dt
+            print([errorDist,errorAngle])
+            if(abs(calRotationDegree([target[2],target[3]],self.dir_before))>8.0 ):
+                self.dir_before=[target[2],target[3]]
+                self.errorAngleIntegral=0
+            if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0 and abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))<172.0):
+                if(abs(errorDist)>70.0 and errorDist>0.0):
+                    
+                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                    print("+")
+                    print(control_angle)
+                elif(abs(errorDist)>70.0 and errorDist<0.0):
+                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                    print("-")
+                    print(control_angle)
+                else:
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
             else:
-                control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+                if(abs(errorDist)>150.0):
+                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+                    print("200")
+                    print(control_angle)
+                else:
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+            
         else:
-            if(abs(errorDist)>120.0):
-                control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
-                control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+            target=self.target
+            target=[self.target[0],self.target[1],target[0] - current[0], target[1] - current[1]]
+            errorDist = calDist([target[0] - current[0], target[1] - current[1]])
+            
+            errorAngle = calRotationDegree([current[2], current[3]], [target[2], target[3]])
+            if(abs(calRotationDegree([target[2],target[3]],[current[2], current[3]]))>90.0):
+                errorDist=-errorDist
+            de_dist=errorDist-self.errorDistPrev
+            de_angle=errorAngle-self.errorAnglePrev
+            dt=time.time()-self.timePrev
+            self.timePrev=time.time()
+            self.errorDistIntegral+=errorDist*dt
+            self.errorAngleIntegral+=errorAngle*dt
+            print([errorDist,errorAngle])
+            if(abs(calRotationDegree([target[2],target[3]],self.dir_before))>8.0 ):
+                self.dir_before=[target[2],target[3]]
+                self.errorAngleIntegral=0
+            if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0 and abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))<172.0):
+                if(abs(errorDist)>70.0):
+                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                    print("+")
+                    print(control_angle)
+                else:
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
             else:
-                control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+                if(abs(errorDist)>70.0):
+                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+                    print("200")
+                    print(control_angle)
+                else:
+                    control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+            
+
+            
+            
         #target=self.target
-        #MAXIMUM velocity of robot is 0.5m/s
-        # for 1m error PID value becomes about 1000*Kp (=maxControlValue)
-        # and we set this as a reference and caculate the ratio (because pwm uses duty cycle( in percentage = max 100%))
-        #control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
-        #control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
+            #MAXIMUM velocity of robot is 0.5m/s
+            # for 1m error PID value becomes about 1000*Kp (=maxControlValue)
+            # and we set this as a reference and caculate the ratio (because pwm uses duty cycle( in percentage = max 100%))
+            #control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
+            #control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
 
         print()
         right_control= (control_dist + control_angle*0.5)
@@ -161,11 +216,9 @@ class Platform:
 
         self.errorDistPrev=errorDist
         self.errorAnglePrev=errorAngle
-        
-        
+    
 
     def initialize(self):
-
         self.errorAnglePrev=0.0
         self.errorPosPrev = 0.0
         self.timePrev=0.0
@@ -196,7 +249,6 @@ def calRotationDegree(dir1,dir2):
     if(abs(dotProduct)>1.0):
         return 0.0
     angle =180*(math.acos(dotProduct))/math.pi
-
     crossProduct=-(dir1[0]*dir2[1]-dir1[1]*dir2[0])
     if(crossProduct>0):
         return -angle
