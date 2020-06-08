@@ -140,12 +140,12 @@ class Platform:
                 self.dir_before=[target[2],target[3]]
                 self.errorAngleIntegral=0
             if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0 and abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))<172.0):
-                if(abs(errorDist)>70.0 and errorDist>0.0):
+                if(abs(errorDist)>100.0 and errorDist>0.0):
                     
                     control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
                     print("+")
                     print(control_angle)
-                elif(abs(errorDist)>70.0 and errorDist<0.0):
+                elif(abs(errorDist)>100.0 and errorDist<0.0):
                     control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
                     print("-")
                     print(control_angle)
@@ -153,7 +153,6 @@ class Platform:
                     control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
             else:
                 if(abs(errorDist)>150.0):
-                    control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
                     control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
                     print("200")
                     print(control_angle)
@@ -179,14 +178,14 @@ class Platform:
                 self.dir_before=[target[2],target[3]]
                 self.errorAngleIntegral=0
             if(abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))>8.0 and abs(calRotationDegree([target[2],target[3]],[current[2],current[3]]))<172.0):
-                if(abs(errorDist)>70.0):
+                if(abs(errorDist)>100.0):
                     control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
                     print("+")
                     print(control_angle)
                 else:
                     control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
             else:
-                if(abs(errorDist)>70.0):
+                if(abs(errorDist)>100.0):
                     control_angle=self.rotpid[0]*errorAngle + self.rotpid[1]*de_angle/dt + self.rotpid[2]*self.errorAngleIntegral;
                     control_dist=self.movpid[0]*errorDist + self.movpid[1]*de_dist/dt + self.movpid[2]*self.errorDistIntegral;
                     print("200")

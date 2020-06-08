@@ -26,12 +26,13 @@ car = Platform(pwm_r,pwm_l)
 robotArm = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"],config["GPIO_ARM_ENPINS"],
                             config["ROBOTARM_MIN_ANGLES"],servopwm)
 robotArm.setArm()
-
+robotArm.moveToMovingPos()
 def run_client():
     phase=0
     back=False
     while(True):
         try:
+            
             clientSock = socket(AF_INET, SOCK_STREAM)
             print("start tcp connection")
             clientSock.connect((config["SERVER_IP_ADDR"], config["SERVER_PORT"]))
@@ -114,9 +115,12 @@ if __name__ == "__main__":
 # below codes are for tests
 #time.sleep(60)
 '''
+robotArm = armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"],config["GPIO_ARM_ENPINS"],
+                            config["ROBOTARM_MIN_ANGLES"],servopwm)
+robotArm.setArm()
 ang = calAngle(config["ROBOTARM_INITIAL_POSITION"][0], config["ROBOTARM_INITIAL_POSITION"][1])
 print(ang)
-ang = calAngle(200, 175.5-83.458)
+ang = calAngle(200,-83.458)
 print(calPos(ang[0], ang[1]))
 tar=calPos(ang[0], ang[1])
 robotArm.setArm()

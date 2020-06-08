@@ -78,6 +78,7 @@ class Motor:
             return encoderPosL
 
     def move(self, control):
+        gpio.setup(self.pins[2], gpio.OUT)
         gpio.output(self.pins[2], True)
         print(control)
         if(self.right):

@@ -14,7 +14,7 @@ class armClient:
 
     def __init__(self, dirPins, stpPins,enPins, minAngles, servopwm):
         initPos=config["ROBOTARM_INITIAL_POSITION"]
-        self.curAngles = calAngle(initPos[0], initPos[1])
+        self.curAngles = config["ROBOTARM_INITIAL_ANGLE"]
         self.motorList = []
         self.slice = 5000
         self.ratio = 5.0  # ratio of rotation,  second motor rotates robot arm indirect wat
@@ -53,7 +53,7 @@ class armClient:
         m[0].curAng += (stp[0] * self.stepSize / m[0].gear)
         m[1].curAng += (stp[1] * self.stepSize / m[1].gear)
 
-        t1 = threading.Thread(target=m[0].move, args=(stp[0] , 4))
+        t1 = threading.Thread(target=m[0].move, args=(stp[0] , 10))
         t2 = threading.Thread(target=m[1].move, args=(-stp[1] , 4))
         t1.start()
         t2.start()
@@ -79,13 +79,13 @@ class armClient:
             # because the frame of robot arm always makes prallelogram
             mov = [(cur[0] - before[0]), cur[1] + cur[0] - (before[1] + before[0])]
             stp = [int(mov[0]*m[0].gear / self.stepSize), int(mov[1]*m[1].gear/ self.stepSize)]
-            if(not self.inAngle(cur)):
-                return False
+            #if(not self.inAngle(cur)):
+                #return False
             if(abs(stp[0])>0 and abs(stp[1])>0):
                 len+=1
                 stpArr.append(stp)
-                v1 = 60
-                v2 = 60
+                v1 = 15
+                v2 = 15
                 if (abs(stp[0]) > abs(stp[1])):
                     v2 = v1 * abs(stp[1]) / abs(stp[0])
                 else:
@@ -116,12 +116,10 @@ class armClient:
         cur = [self.curAngles[0], self.curAngles[1]]
         
         #move before work: move to upside of brick, this movement ensures stabillity
-        beforeWork=calAngle(target_pos[0],target_pos[1]+config["ROBOT_ARM_BEFORE_WORK"])
+        beforeWork=calAngle(target_pos[0],config["ROBOT_ARM_BEFORE_WORK"])
         self.move(beforeWork)
         target = calAngle(target_pos[0], target_pos[1])
-        if(not self.inPos(target_pos) or not self.inAngle(target)):
-            return False
-        
+
         if grap:
             time.sleep(0.1)
             self.servoPwm.ChangeDutyCycle(3)
