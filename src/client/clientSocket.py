@@ -86,7 +86,7 @@ def run_client():
                     phase=1
                     print("grb")
                     print(inst)
-                    retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+10.0+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
+                    retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], True)
                     if(retValue):
                         clientSock.sendall("DONE".encode())
                     else:
@@ -94,7 +94,7 @@ def run_client():
                 elif (inst[0] == 'RLZ'):
                     phase=1
                     print("rlz")
-                    retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+10.0+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], False)
+                    retValue=robotArm.work([float(inst[1])-config["ROBOT_ARM_GRIPPER_DIST"], float(inst[2])+config["ROBOT_ARM_GRIPPER_HEIGHT"]-config["ROBOT_ARM_CENTER_HEIGHT"]], False)
                     if(retValue):
                         clientSock.sendall("DONE".encode())
                     else:
@@ -113,19 +113,16 @@ if __name__ == "__main__":
     
 # below codes are for tests
 #time.sleep(60)
-
 '''
-testCar = Platform()
-testArm=armClient(config["GPIO_ARM_DIRPINS"], config["GPIO_ARM_STPPINS"], config["GPIO_ARM_ENPINS"], config["ROBOTARM_MIN_ANGLES"],config["GPIO_SERVO_PIN"])
 ang = calAngle(config["ROBOTARM_INITIAL_POSITION"][0], config["ROBOTARM_INITIAL_POSITION"][1])
 print(ang)
-ang = calAngle(200, -83.458)
+ang = calAngle(200, 175.5-83.458)
 print(calPos(ang[0], ang[1]))
 tar=calPos(ang[0], ang[1])
-testArm.setArm()
-testCar.initialize()
+robotArm.setArm()
 
-testArm.work([tar[0], tar[1]], False)
+
+robotArm.work([tar[0], tar[1]], False)
 #testCar.offlineMove(720.0,720.0)
 time.sleep(1)
 #testCar.offlineMove(720.0-360.0,720.0+360.0)
@@ -134,5 +131,6 @@ time.sleep(1)
 time.sleep(1)
 #testArm.work([200, -85], False)
 #time.sleep(1)
-testArm.move(calAngle(config["ROBOTARM_INITIAL_POSITION"][0], config["ROBOTARM_INITIAL_POSITION"][1]))
+robotArm.move(calAngle(config["ROBOTARM_INITIAL_POSITION"][0], config["ROBOTARM_INITIAL_POSITION"][1]))
+
 '''
